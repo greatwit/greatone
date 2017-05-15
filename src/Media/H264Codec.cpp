@@ -20,10 +20,10 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include <nativehelper/ScopedLocalRef.h>
+//#include <nativehelper/ScopedLocalRef.h>
 
 #include <system/window.h> 
-
+#include "H264CodecApi.h"
 
 using namespace android;
 
@@ -55,17 +55,13 @@ struct fields_t {
 
 static fields_t gFields;
 
-
 static sp<JMediaCodec> setMediaCodec(
-        JNIEnv *env, jobject thiz, const sp<JMediaCodec> &codec) 
-{
+        JNIEnv *env, jobject thiz, const sp<JMediaCodec> &codec) {
     sp<JMediaCodec> old = (JMediaCodec *)env->GetIntField(thiz, gFields.context);
-    if (codec != NULL) 
-    {
+    if (codec != NULL) {
         codec->incStrong(thiz);
     }
-    if (old != NULL) 
-    {
+    if (old != NULL) {
         old->decStrong(thiz);
     }
     env->SetIntField(thiz, gFields.context, (int)codec.get());
@@ -77,43 +73,31 @@ static sp<JMediaCodec> getMediaCodec(JNIEnv *env, jobject thiz) {
     return (JMediaCodec *)env->GetIntField(thiz, gFields.context);
 }
 
+static void android_media_MediaCodec_release(JNIEnv *env, jobject thiz) {
+    setMediaCodec(env, thiz, NULL);
+}
 
 static void throwCryptoException(JNIEnv *env, status_t err, const char *msg) {
-    ScopedLocalRef<jclass> clazz(
-            env, env->FindClass("android/media/MediaCodec$CryptoException"));
-    CHECK(clazz.get() != NULL);
+    jclass clazz = env->FindClass("android/media/MediaCodec$CryptoException");
+    CHECK(clazz != NULL);
 
     jmethodID constructID =
-        env->GetMethodID(clazz.get(), "<init>", "(ILjava/lang/String;)V");
+        env->GetMethodID(clazz, "<init>", "(ILjava/lang/String;)V");
     CHECK(constructID != NULL);
 
     jstring msgObj = env->NewStringUTF(msg != NULL ? msg : "Unknown Error");
 
-    /* translate OS errors to Java API CryptoException errorCodes */
-    switch (err) {
-        case ERROR_DRM_NO_LICENSE:
-            err = gCryptoErrorCodes.cryptoErrorNoKey;
-            break;
-        case ERROR_DRM_LICENSE_EXPIRED:
-            err = gCryptoErrorCodes.cryptoErrorKeyExpired;
-            break;
-        case ERROR_DRM_RESOURCE_BUSY:
-            err = gCryptoErrorCodes.cryptoErrorResourceBusy;
-            break;
-        default:
-            break;
-    }
-
     jthrowable exception =
-        (jthrowable)env->NewObject(clazz.get(), constructID, err, msgObj);
+        (jthrowable)env->NewObject(clazz, constructID, err, msgObj);
 
     env->Throw(exception);
 }
 
 static jint throwExceptionAsNecessary(
         JNIEnv *env, status_t err, const char *msg = NULL) {
-    if (err >= ERROR_DRM_VENDOR_MIN && err <= ERROR_DRM_VENDOR_MAX) {
+    if (err >= ERROR_DRM_WV_VENDOR_MIN && err <= ERROR_DRM_WV_VENDOR_MAX) {
         // We'll throw our custom MediaCodec.CryptoException
+
         throwCryptoException(env, err, msg);
         return 0;
     }
@@ -131,15 +115,9 @@ static jint throwExceptionAsNecessary(
         case INFO_OUTPUT_BUFFERS_CHANGED:
             return DEQUEUE_INFO_OUTPUT_BUFFERS_CHANGED;
 
-        case ERROR_DRM_NO_LICENSE:
-        case ERROR_DRM_LICENSE_EXPIRED:
-        case ERROR_DRM_RESOURCE_BUSY:
-            throwCryptoException(env, err, msg);
-            break;
-
         default:
         {
-            jniThrowException(env, "java/lang/IllegalStateException", msg);
+            jniThrowException(env, "java/lang/IllegalStateException", NULL);
             break;
         }
     }
@@ -147,14 +125,141 @@ static jint throwExceptionAsNecessary(
     return 0;
 }
 
+void JNI_API_NAME(native_setup)( JNIEnv *env, jobject thiz, jstring name, jboolean nameIsType, jboolean encoder)
+{
+	    if (name == NULL) {
+        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+        return;
+    }
 
+    const char *tmp = env->GetStringUTFChars(name, NULL);
+
+    if (tmp == NULL) {
+        return;
+    }
+
+    sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
+
+    status_t err = codec->initCheck();
+
+    env->ReleaseStringUTFChars(name, tmp);
+    tmp = NULL;
+
+    if (err != OK) {
+        jniThrowException(
+                env,
+                "java/io/IOException",
+                "Failed to allocate component instance");
+        return;
+    }
+
+    setMediaCodec(env,thiz, codec);
+}
+
+void JNI_API_NAME(release)(JNIEnv *env, jobject thiz)
+{
+	setMediaCodec(env, thiz, NULL);
+}
+
+void JNI_API_NAME(native_configure)( JNIEnv *env, jobject thiz, jobjectArray keys, jobjectArray values, jobject jsurface, jobject jcrypto, jint flags)
+{
+    sp<JMediaCodec> codec = getMediaCodec(env, thiz);
+
+    if (codec == NULL) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+
+    sp<AMessage> format;
+    status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
+
+    if (err != OK) {
+        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+        return;
+    }
+
+    sp<ISurfaceTexture> surfaceTexture;
+    if (jsurface != NULL) {
+        sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+        if (surface != NULL) {
+            surfaceTexture = surface->getSurfaceTexture();
+        } else {
+            jniThrowException(
+                    env,
+                    "java/lang/IllegalArgumentException",
+                    "The surface has been released");
+            return;
+        }
+    }
+
+    sp<ICrypto> crypto;
+    if (jcrypto != NULL) {
+        crypto = JCrypto::GetCrypto(env, jcrypto);
+    }
+
+    err = codec->configure(format, surfaceTexture, crypto, flags);
+
+    throwExceptionAsNecessary(env, err);
+}
+
+void JNI_API_NAME(start)(JNIEnv *env, jobject thiz)
+{
+	ALOGV("android_media_MediaCodec_start");
+
+    sp<JMediaCodec> codec = getMediaCodec(env, thiz);
+
+    if (codec == NULL) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+
+    status_t err = codec->start();
+
+    throwExceptionAsNecessary(env, err);
+}
+
+void JNI_API_NAME(stop)(JNIEnv *env, jobject thiz)
+{
+	ALOGV("android_media_MediaCodec_stop");
+
+    sp<JMediaCodec> codec = getMediaCodec(env, thiz);
+
+    if (codec == NULL) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+
+    status_t err = codec->stop();
+
+    throwExceptionAsNecessary(env, err);
+}
+
+void JNI_API_NAME(flush)(JNIEnv *env, jobject thiz)
+{
+	ALOGV("android_media_MediaCodec_flush");
+
+    sp<JMediaCodec> codec = getMediaCodec(env, thiz);
+
+    if (codec == NULL) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+
+    status_t err = codec->flush();
+
+    throwExceptionAsNecessary(env, err);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 static void android_media_MediaCodec_native_configure(
         JNIEnv *env,
         jobject thiz,
         jobjectArray keys, jobjectArray values,
         jobject jsurface,
         jobject jcrypto,
-        jint flags) {
+        jint flags) 
+{
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
     if (codec == NULL) {
@@ -192,6 +297,43 @@ static void android_media_MediaCodec_native_configure(
     err = codec->configure(format, bufferProducer, crypto, flags);
 
     throwExceptionAsNecessary(env, err);
+}
+
+static void android_media_MediaCodec_native_setup(
+        JNIEnv *env, jobject thiz,
+        jstring name, jboolean nameIsType, jboolean encoder) {
+    if (name == NULL) {
+        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+        return;
+    }
+
+    const char *tmp = env->GetStringUTFChars(name, NULL);
+
+    if (tmp == NULL) {
+        return;
+    }
+
+    sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
+
+    status_t err = codec->initCheck();
+
+    env->ReleaseStringUTFChars(name, tmp);
+    tmp = NULL;
+
+    if (err != OK) {
+        jniThrowException(
+                env,
+                "java/io/IOException",
+                "Failed to allocate component instance");
+        return;
+    }
+
+    setMediaCodec(env,thiz, codec);
+}
+
+static void android_media_MediaCodec_native_finalize(
+        JNIEnv *env, jobject thiz) {
+    android_media_MediaCodec_release(env, thiz);
 }
 
 static jobject android_media_MediaCodec_createInputSurface(JNIEnv* env,
@@ -666,42 +808,7 @@ static void android_media_MediaCodec_native_init(JNIEnv *env) {
         env->GetStaticIntField(clazz.get(), field);
 }
 
-static void android_media_MediaCodec_native_setup(
-        JNIEnv *env, jobject thiz,
-        jstring name, jboolean nameIsType, jboolean encoder) {
-    if (name == NULL) {
-        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-        return;
-    }
 
-    const char *tmp = env->GetStringUTFChars(name, NULL);
-
-    if (tmp == NULL) {
-        return;
-    }
-
-    sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
-
-    status_t err = codec->initCheck();
-
-    env->ReleaseStringUTFChars(name, tmp);
-    tmp = NULL;
-
-    if (err != OK) {
-        jniThrowException(
-                env,
-                "java/io/IOException",
-                "Failed to allocate component instance");
-        return;
-    }
-
-    setMediaCodec(env,thiz, codec);
-}
-
-static void android_media_MediaCodec_native_finalize(
-        JNIEnv *env, jobject thiz) {
-    android_media_MediaCodec_release(env, thiz);
-}
 
 static JNINativeMethod gMethods[] = {
     { "release", "()V", (void *)android_media_MediaCodec_release },
@@ -764,8 +871,7 @@ int register_android_media_MediaCodec(JNIEnv *env) {
     return AndroidRuntime::registerNativeMethods(env,
                 "android/media/MediaCodec", gMethods, NELEM(gMethods));
 }
-
-
+*/
 
 
 

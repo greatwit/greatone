@@ -272,8 +272,9 @@ void JMediaCodec::setVideoScalingMode(int mode) {
 
 }  // namespace android
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 using namespace android;
 
 static sp<JMediaCodec> setMediaCodec(
@@ -842,3 +843,4 @@ int register_android_media_MediaCodec(JNIEnv *env) {
     return AndroidRuntime::registerNativeMethods(env,
                 "android/media/MediaCodec", gMethods, NELEM(gMethods));
 }
+*/

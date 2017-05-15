@@ -1,7 +1,7 @@
 #ifndef _H264_CODEC_API_H_
 #define _H264_CODEC_API_H_
 
-#define JNI_API_NAME(A)		Java_com_great_##A
+#define JNI_API_NAME(A)		Java_com_great_happyness_camera_NativeDecodeActivity##A
 
 
 #ifdef __cplusplus
@@ -10,6 +10,7 @@ extern "C"
 #endif
 
 
+JNIEXPORT void JNICALL JNI_API_NAME(native_setup)( JNIEnv *env, jobject thiz, jstring name, jboolean nameIsType, jboolean encoder);
 JNIEXPORT void JNICALL JNI_API_NAME(release)(JNIEnv *env, jobject thiz);
 JNIEXPORT void JNICALL JNI_API_NAME(native_configure)( JNIEnv *env, jobject thiz, jobjectArray keys, jobjectArray values, jobject jsurface, jobject jcrypto, jint flags);
 JNIEXPORT jobject JNICALL JNI_API_NAME(createInputSurface)(JNIEnv *env, jobject thiz);
@@ -27,7 +28,6 @@ JNIEXPORT jobject JNICALL JNI_API_NAME(getBuffers)( JNIEnv *env, jobject thiz, j
 JNIEXPORT jobject JNICALL JNI_API_NAME(getName)( JNIEnv *env, jobject thiz);
 JNIEXPORT void JNICALL JNI_API_NAME(setParameters)( JNIEnv *env, jobject thiz, jobjectArray keys, jobjectArray vals);
 JNIEXPORT void JNICALL JNI_API_NAME(setVideoScalingMode)( JNIEnv *env, jobject thiz, jint mode);
-JNIEXPORT void JNICALL JNI_API_NAME(native_setup)( JNIEnv *env, jobject thiz, jstring name, jboolean nameIsType, jboolean encoder);
 
 
 #ifdef __cplusplus
