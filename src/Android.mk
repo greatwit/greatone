@@ -3,6 +3,7 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
     $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/*.c*)) \
+	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Audio/*.c*)) \
     $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/rtplib/*.c*))
 
 LOCAL_SHARED_LIBRARIES := \

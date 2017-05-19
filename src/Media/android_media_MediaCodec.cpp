@@ -43,25 +43,7 @@
 
 namespace android {
 
-// Keep these in sync with their equivalents in MediaCodec.java !!!
-enum {
-    DEQUEUE_INFO_TRY_AGAIN_LATER            = -1,
-    DEQUEUE_INFO_OUTPUT_FORMAT_CHANGED      = -2,
-    DEQUEUE_INFO_OUTPUT_BUFFERS_CHANGED     = -3,
-};
 
-struct fields_t {
-    jfieldID context;
-
-    jfieldID cryptoInfoNumSubSamplesID;
-    jfieldID cryptoInfoNumBytesOfClearDataID;
-    jfieldID cryptoInfoNumBytesOfEncryptedDataID;
-    jfieldID cryptoInfoKeyID;
-    jfieldID cryptoInfoIVID;
-    jfieldID cryptoInfoModeID;
-};
-
-static fields_t gFields;
 
 ////////////////////////////////////////////////////////////////////////////////
 
