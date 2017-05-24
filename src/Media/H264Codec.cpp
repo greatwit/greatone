@@ -267,6 +267,8 @@ void JNI_API_NAME(flush)(JNIEnv *env, jobject thiz)
     throwExceptionAsNecessary(env, err);
 }
 
+
+
 jobject JNI_API_NAME(getBuffers)( JNIEnv *env, jobject thiz, jboolean input)
 {
 	ALOGV("android_media_MediaCodec_getBuffers");

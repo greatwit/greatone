@@ -32,6 +32,11 @@
 
 #define TAG "CodecMedia"
 
+#define ALOGTEST(...)  __android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
+
+char *mFilePath = "/sdcard/camera.h264";
+
+
 using namespace android;
 
 
@@ -227,6 +232,51 @@ static void JNI_API_NAME(flush)(JNIEnv *env, jobject thiz) {
     throwExceptionAsNecessary(env, err);
 }
 
+
+jobjectArray mInputBuffers;
+jobjectArray mOutputBuffers;
+// env->DeleteGlobalRef( p_sys->input_buffers);
+
+
+static jobjectArray JNI_API_NAME(getBuffers)(
+        JNIEnv *env, jobject thiz, jboolean input) 
+{
+    ALOGV("android_media_MediaCodec_getBuffers");
+
+    sp<JMediaCodec> codec = getMediaCodec(env, thiz);
+
+    if (codec == NULL) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return NULL;
+    }
+
+	/*
+    jobjectArray buffers;
+    status_t err = codec->getBuffers(env, input, &buffers);
+
+    if (err == OK) {
+        return buffers;
+    }
+	*/
+	status_t err;
+	if(input)
+	{
+		err = codec->getBuffers(env, input, &mInputBuffers);
+		if (err == OK)
+			return mInputBuffers;
+	}
+	else
+	{
+		err = codec->getBuffers(env, input, &mOutputBuffers);
+		if (err == OK)
+			return mOutputBuffers;
+	}
+	
+    throwExceptionAsNecessary(env, err);
+
+    return NULL;
+}
+
 static void JNI_API_NAME(queueInputBuffer)(
         JNIEnv *env,
         jobject thiz,
@@ -317,30 +367,88 @@ static void JNI_API_NAME(releaseOutputBuffer)(
     throwExceptionAsNecessary(env, err);
 }
 
+int bytesToInt(char* src, int offset) 
+{  
+	int value;    
+	value = (int) ((src[offset]	  & 0xFF)   
+				| ((src[offset+1] & 0xFF)<<8)   
+				| ((src[offset+2] & 0xFF)<<16)   
+				| ((src[offset+3] & 0xFF)<<24));  
+	return value;  
+} 
 
-static jobjectArray JNI_API_NAME(getBuffers)(
-        JNIEnv *env, jobject thiz, jboolean input) 
+static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
 {
-    ALOGV("android_media_MediaCodec_getBuffers");
+	sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
-    sp<JMediaCodec> codec = getMediaCodec(env, thiz);
-
+	ALOGTEST("startCodec------------1");
+	
     if (codec == NULL) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
-        return NULL;
+        return ;
     }
+	
+	char length[4] = {0};
+	char data[1000000] = {0};
 
-    jobjectArray buffers;
-    status_t err = codec->getBuffers(env, input, &buffers);
+	FILE *file = fopen(mFilePath, "rb");
+	int res = 0, dataLen = 0;
+	size_t inputBufferIndex = 0, outputBufferIndex = 0;
+	
+	status_t err;
+	int mCount = 0;
+	AString errorDetailMsg;
+	ALOGTEST("startCodec------------2");
+	do 
+	{
+		res = fread(length, 4, 1, file);
+		if(res>0)
+		{
+			dataLen = bytesToInt(length,0);
+			res = fread(data, dataLen, 1, file);
+			
+			ALOGTEST("startCodec------------3 res:%d dataLen:%d", res, dataLen);
+			
+			err = codec->dequeueInputBuffer(&inputBufferIndex, -1);
+			ALOGTEST("startCodec------------4 err:%d", err);
+			jobject inputObject = env->GetObjectArrayElement(mInputBuffers, inputBufferIndex);
+			
+			size_t inputSize 	= env->GetDirectBufferCapacity(inputObject);
+			
+			ALOGTEST("startCodec------------5 in size:%d", inputSize);
+			
+			uint8_t* inputChar 	= (uint8_t*)env->GetDirectBufferAddress( inputObject);
+			memcpy(inputChar, data, dataLen);
+			
+			err = codec->queueInputBuffer(inputBufferIndex, 0, dataLen, mCount * 1000000 / 20, 0, &errorDetailMsg);
+			mCount++;
+			
+			ALOGTEST("startCodec------------6 err:%d input index:%d inputChar addr:%d", err, inputBufferIndex, inputChar);
+			
+			
+			err = codec->dequeueOutputBuffer(env, bufferInfo, &outputBufferIndex, 0);
+			ALOGTEST("startCodec------------7 err:%d outputBufferIndex:%d", err, outputBufferIndex);
+			
+			while (err ==0 && outputBufferIndex >= 0) 
+			{
+					codec->releaseOutputBuffer(outputBufferIndex, true);
+					err = codec->dequeueOutputBuffer(env, bufferInfo, &outputBufferIndex, 0);
+			}
 
-    if (err == OK) {
-        return buffers;
-    }
+			if (outputBufferIndex < 0) 
+			{
+				ALOGTEST("startCodec------------err :%d ", outputBufferIndex);
+			}
+			
+			ALOGTEST("startCodec------------8");
+			
+			usleep(50*1000);
+		}
+	} while (res>0);
 
-    throwExceptionAsNecessary(env, err);
-
-    return NULL;
+	fclose(file);
 }
+
 
 static void JNI_API_NAME(native_init)(JNIEnv *env) 
 {
@@ -408,15 +516,8 @@ static void JNI_API_NAME(native_setup)(
     }
 
     setMediaCodec(env,thiz, codec);
-	
-	
 }
 
-static void JNI_API_NAME(native_finalize)(
-        JNIEnv *env, jobject thiz) 
-{
-    JNI_API_NAME(release)(env, thiz);
-}
 
 static JNINativeMethod gMethods[] = {
     { "release", "()V", (void *)JNI_API_NAME(release) },
@@ -429,10 +530,10 @@ static JNINativeMethod gMethods[] = {
     { "start", "()V", (void *)JNI_API_NAME(start) },
     { "stop", "()V", (void *)JNI_API_NAME(stop) },
     { "flush", "()V", (void *)JNI_API_NAME(flush) },
+	{ "startCodec", "(Landroid/media/MediaCodec$BufferInfo;)V", (void *)JNI_API_NAME(startCodec) },
 
     { "queueInputBuffer", "(IIIJI)V",
       (void *)JNI_API_NAME(queueInputBuffer) },
-
 
     { "dequeueInputBuffer", "(J)I",
       (void *)JNI_API_NAME(dequeueInputBuffer) },
@@ -442,7 +543,7 @@ static JNINativeMethod gMethods[] = {
 
     { "releaseOutputBuffer", "(IZ)V",
       (void *)JNI_API_NAME(releaseOutputBuffer) },
-
+	  
     { "getBuffers", "(Z)[Ljava/nio/ByteBuffer;",
       (void *)JNI_API_NAME(getBuffers) },
 
@@ -450,9 +551,7 @@ static JNINativeMethod gMethods[] = {
 
     { "native_setup", "(Ljava/lang/String;ZZ)V",
       (void *)JNI_API_NAME(native_setup) },
-
-    { "native_finalize", "()V",
-      (void *)JNI_API_NAME(native_finalize) },
+	  
 };
 
 int jniRegisterNativeMethods1(JNIEnv* env,
