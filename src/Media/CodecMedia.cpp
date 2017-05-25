@@ -14,6 +14,8 @@
 #include "jni.h"
 #include "JNIHelp.h"
 
+#include "cutils/properties.h"
+
 #include <gui/Surface.h>
 #include <gui/SurfaceTextureClient.h>
 
@@ -33,6 +35,9 @@
 #define TAG "CodecMedia"
 
 #define ALOGTEST(...)  __android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
+
+#define PROPERTY_KEY_MAX    32
+#define PROPERTY_VALUE_MAX  92
 
 char *mFilePath = "/sdcard/camera.h264";
 
@@ -59,7 +64,8 @@ struct fields_t {
 };
 
 static fields_t gFields;
-
+uint8_t*bufferPoint[2];
+jobject mBufferInfo;
 
 
 static sp<JMediaCodec> setMediaCodec(
@@ -179,6 +185,7 @@ static void JNI_API_NAME(native_configure)(
 
     err = codec->configure(format, surfaceTexture, crypto, flags);
 
+
     throwExceptionAsNecessary(env, err);
 }
 
@@ -199,6 +206,15 @@ static void JNI_API_NAME(start)(JNIEnv *env, jobject thiz) {
 
     status_t err = codec->start();
 
+	jobjectArray inputBuffers;
+	err = codec->getBuffers(env, true, &inputBuffers);
+
+	for(int i =0;i<2;i++)
+	{
+		jobject inputObject = env->GetObjectArrayElement(inputBuffers, i);
+		bufferPoint[i] 	= (uint8_t*)env->GetDirectBufferAddress( inputObject);
+	}
+	
     throwExceptionAsNecessary(env, err);
 }
 
@@ -250,14 +266,14 @@ static jobjectArray JNI_API_NAME(getBuffers)(
         return NULL;
     }
 
-	/*
+	
     jobjectArray buffers;
     status_t err = codec->getBuffers(env, input, &buffers);
 
     if (err == OK) {
         return buffers;
     }
-	*/
+	/*
 	status_t err;
 	if(input)
 	{
@@ -271,7 +287,7 @@ static jobjectArray JNI_API_NAME(getBuffers)(
 		if (err == OK)
 			return mOutputBuffers;
 	}
-	
+	*/
     throwExceptionAsNecessary(env, err);
 
     return NULL;
@@ -377,7 +393,7 @@ int bytesToInt(char* src, int offset)
 	return value;  
 } 
 
-static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
+void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 {
 	sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
@@ -388,17 +404,56 @@ static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferI
         return ;
     }
 	
-	char length[4] = {0};
-	char data[1000000] = {0};
-
-	FILE *file = fopen(mFilePath, "rb");
-	int res = 0, dataLen = 0;
 	size_t inputBufferIndex = 0, outputBufferIndex = 0;
 	
 	status_t err;
 	int mCount = 0;
 	AString errorDetailMsg;
-	ALOGTEST("startCodec------------2");
+	
+	
+	err = codec->dequeueInputBuffer(&inputBufferIndex, -1);
+	ALOGTEST("startCodec------------4 err:%d", err);
+
+
+	uint8_t* inputChar = bufferPoint[inputBufferIndex];
+	memcpy(inputChar, data, dataLen);
+	
+	err = codec->queueInputBuffer(inputBufferIndex, 0, dataLen, mCount * 1000000 / 20, 0, &errorDetailMsg);
+	mCount++;
+	
+	ALOGTEST("startCodec------------6 err:%d input index:%d inputChar addr:%d", err, inputBufferIndex, inputChar);
+	
+	
+	err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
+	ALOGTEST("startCodec------------7 err:%d outputBufferIndex:%d", err, outputBufferIndex);
+	
+	while (err ==0 && outputBufferIndex >= 0) 
+	{
+			codec->releaseOutputBuffer(outputBufferIndex, true);
+			err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
+	}
+
+	if (outputBufferIndex < 0) 
+	{
+		ALOGTEST("startCodec------------err :%d ", outputBufferIndex);
+	}
+	
+	ALOGTEST("startCodec------------8");
+}
+
+static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
+{
+
+	
+	char length[4] = {0};
+	char data[1000000] = {0};
+
+	FILE *file = fopen(mFilePath, "rb");
+	int res = 0, dataLen = 0;
+
+    
+	mBufferInfo = bufferInfo;
+	
 	do 
 	{
 		res = fread(length, 4, 1, file);
@@ -409,38 +464,7 @@ static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferI
 			
 			ALOGTEST("startCodec------------3 res:%d dataLen:%d", res, dataLen);
 			
-			err = codec->dequeueInputBuffer(&inputBufferIndex, -1);
-			ALOGTEST("startCodec------------4 err:%d", err);
-			jobject inputObject = env->GetObjectArrayElement(mInputBuffers, inputBufferIndex);
-			
-			size_t inputSize 	= env->GetDirectBufferCapacity(inputObject);
-			
-			ALOGTEST("startCodec------------5 in size:%d", inputSize);
-			
-			uint8_t* inputChar 	= (uint8_t*)env->GetDirectBufferAddress( inputObject);
-			memcpy(inputChar, data, dataLen);
-			
-			err = codec->queueInputBuffer(inputBufferIndex, 0, dataLen, mCount * 1000000 / 20, 0, &errorDetailMsg);
-			mCount++;
-			
-			ALOGTEST("startCodec------------6 err:%d input index:%d inputChar addr:%d", err, inputBufferIndex, inputChar);
-			
-			
-			err = codec->dequeueOutputBuffer(env, bufferInfo, &outputBufferIndex, 0);
-			ALOGTEST("startCodec------------7 err:%d outputBufferIndex:%d", err, outputBufferIndex);
-			
-			while (err ==0 && outputBufferIndex >= 0) 
-			{
-					codec->releaseOutputBuffer(outputBufferIndex, true);
-					err = codec->dequeueOutputBuffer(env, bufferInfo, &outputBufferIndex, 0);
-			}
-
-			if (outputBufferIndex < 0) 
-			{
-				ALOGTEST("startCodec------------err :%d ", outputBufferIndex);
-			}
-			
-			ALOGTEST("startCodec------------8");
+			decorder(env, thiz, data, dataLen);
 			
 			usleep(50*1000);
 		}
@@ -604,7 +628,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "loading . . .2");
 	
 	result = JNI_VERSION_1_4;
-
+	char prop[PROPERTY_VALUE_MAX] = "000";
+if(property_get("prop_name", prop, NULL) != 0)
+{
+	
+}
 	return result;
 }
 

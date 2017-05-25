@@ -12,7 +12,6 @@ LOCAL_SHARED_LIBRARIES := \
     libutils \
     libbinder \
     libmedia \
-    libskia \
     libui \
     liblog \
     libcutils \
@@ -20,10 +19,7 @@ LOCAL_SHARED_LIBRARIES := \
     libstagefright \
     libstagefright_foundation \
     libcamera_client \
-    libmtp \
-    libusbhost \
-    libexif \
-    libstagefright_amrnb_common \
+    libstagefright_amrnb_common
 
 LOCAL_REQUIRED_MODULES := \
     libexif_jni
@@ -54,7 +50,7 @@ LOCAL_C_INCLUDES += external/stlport/stlport bionic
 LOCAL_CFLAGS +=
 
 LOCAL_LDLIBS := -lpthread
-LOCAL_SHARED_LIBRARIES += libstlport
+LOCAL_SHARED_LIBRARIES += libstlport libmedia_jni
 
 
 LOCAL_MODULE:= libgreat_media
