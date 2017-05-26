@@ -4,7 +4,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
     $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/*.c*)) \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Audio/*.c*)) \
-    $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/rtplib/*.c*))
+    $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/RtpTrans/rtplib/jrtplib/*.c*)) \
+	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Common/*.c*)) 
 
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
@@ -39,6 +40,9 @@ LOCAL_C_INCLUDES += \
     frameworks/av/media/libstagefright/codecs/amrnb/common/include \
     frameworks/av/media/mtp \
     frameworks/native/include/media/openmax \
+	$(LOCAL_PATH)/Common \
+	$(LOCAL_PATH)/RtpTrans	\
+	$(LOCAL_PATH)/RtpTrans/rtplib/jrtplib	\
     $(call include-path-for, libhardware)/hardware \
     system/media/camera/include \
     $(PV_INCLUDES) \

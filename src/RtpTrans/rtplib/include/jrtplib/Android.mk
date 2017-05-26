@@ -12,7 +12,7 @@ LOCAL_SRC_FILES := \
                   
 LOCAL_MODULE:= libjrtplib
 
-LOCAL_SHARED_LIBRARIES := libstlport
+LOCAL_SHARED_LIBRARIES := libjthread libstlport
 
 LOCAL_PRELINK_MODULE:= false
  

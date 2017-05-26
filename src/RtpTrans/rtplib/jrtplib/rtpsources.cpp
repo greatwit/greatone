@@ -51,6 +51,8 @@
 
 #include "rtpdebug.h"
 
+#include "ComDefine.h"
+
 namespace jrtplib
 {
 
@@ -180,6 +182,7 @@ int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans[
 		rtppack = RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPPACKET) RTPPacket(*rawpack,GetMemoryManager());
 		if (rtppack == 0)
 			return ERR_RTP_OUTOFMEM;
+
 		if ((status = rtppack->GetCreationError()) < 0)
 		{
 			if (status == ERR_RTP_PACKET_INVALIDPACKET)
@@ -215,7 +218,7 @@ int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans[
 				// what to do with this packet:
 				if (acceptownpackets)
 				{
-					// sender addres for own packets has to be NULL!
+					 //sender addres for own packets has to be NULL!
 					if ((status = ProcessRTPPacket(rtppack,rawpack->GetReceiveTime(),0,&stored)) < 0)
 					{
 						if (!stored)
