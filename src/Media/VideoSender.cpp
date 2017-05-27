@@ -6,6 +6,18 @@
 #include "ComDefine.h"
 #define TAG "VideoSender"
 
+char *gFilePath = "/sdcard/camera.h264";
+
+int charsToInt(char* src, int offset) 
+{  
+	int value;    
+	value = (int) ((src[offset]	  & 0xFF)   
+				| ((src[offset+1] & 0xFF)<<8)   
+				| ((src[offset+2] & 0xFF)<<16)   
+				| ((src[offset+3] & 0xFF)<<24));  
+	return value;  
+} 
+
 
 VideoSender::VideoSender()
 			:mpSender(NULL)
@@ -14,6 +26,7 @@ VideoSender::VideoSender()
 			,mbInited(false)
 			,mbRunning(false)
 			,VideoBase()
+			,mFile(NULL)
 {
 
 	ALOGV("SenderServer::SenderServer() construct.");
@@ -32,6 +45,9 @@ bool VideoSender::Init(ANativeWindow* window, int widht, int height, short sendP
 	mVideoWidth = widht;
 	mVideoHeight = height;
 
+	mFile = fopen(gFilePath, "rb");
+	mcharLength[4] = {0};
+	mData[1000000] = {0};
 
 	mpSender = new RtpSender();
 	if(!mpSender->initSession(sendPort))
@@ -59,6 +75,8 @@ bool VideoSender::DeInit()
 	mpSender->deinitSession();
 	delete mpSender;
 	mpSender = NULL;
+	
+	fclose(mFile);
 	
 	return true;
 }
@@ -160,7 +178,20 @@ bool VideoSender::threadLoop()
 	if(!mbRunning)
 		return true;
 
-	usleep(25000);
+	int res = 0, dataLen = 0;
+	
+	res = fread(mcharLength, 4, 1, mFile);
+	if(res>0)
+	{
+		dataLen = charsToInt(mcharLength,0);
+		res = fread(mData, dataLen, 1, mFile);
+		
+		VIDEOLOGD("startCodec------------3 res:%d dataLen:%d", res, dataLen);
+		
+		sendBuffer(mData, dataLen, (char*)"h264", 5, 0);
+		
+		usleep(50*1000);
+	}
 
 	return true;
 }

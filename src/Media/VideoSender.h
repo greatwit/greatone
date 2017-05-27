@@ -53,6 +53,10 @@ class VideoSender : public VideoBase, public IVideoCallback
 		bool				mbRunning;
 
 		RtpSender					*mpSender;
+		FILE 				*mFile;
+		
+		char mcharLength[4];
+		char mData[1000000];
 };
 
 #endif
