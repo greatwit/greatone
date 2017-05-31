@@ -24,15 +24,33 @@
 #include <utils/Errors.h>
 #include <utils/RefBase.h>
 
+#define HEIGHT_VERSION false
+
 namespace android {
 
 struct ALooper;
 struct AMessage;
 struct AString;
 struct ICrypto;
-struct ISurfaceTexture;
 struct MediaCodec;
+
+#if HEIGHT_VERSION
+struct IGraphicBufferProducer;
+class Surface;
+#else
+struct ISurfaceTexture;
 struct SurfaceTextureClient;
+#endif
+
+
+#define ALOGTEST(...)  __android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
+
+// Keep these in sync with their equivalents in MediaCodec.java !!!
+enum {
+    DEQUEUE_INFO_TRY_AGAIN_LATER            = -1,
+    DEQUEUE_INFO_OUTPUT_FORMAT_CHANGED      = -2,
+    DEQUEUE_INFO_OUTPUT_BUFFERS_CHANGED     = -3,
+};
 
 struct JMediaCodec : public RefBase {
     JMediaCodec(
@@ -43,7 +61,11 @@ struct JMediaCodec : public RefBase {
 
     status_t configure(
             const sp<AMessage> &format,
-            const sp<ISurfaceTexture> &surfaceTexture,
+	#if HEIGHT_VERSION
+	    const sp<IGraphicBufferProducer> &bufferProducer,
+	#else
+	    const sp<ISurfaceTexture> &surfaceTexture,
+	#endif
             const sp<ICrypto> &crypto,
             int flags);
 
@@ -89,7 +111,12 @@ protected:
 private:
     jclass mClass;
     jweak mObject;
+    
+#if HEIGHT_VERSION
+    sp<Surface> mSurfaceTextureClient;
+#else
     sp<SurfaceTextureClient> mSurfaceTextureClient;
+#endif
 
     sp<ALooper> mLooper;
     sp<MediaCodec> mCodec;

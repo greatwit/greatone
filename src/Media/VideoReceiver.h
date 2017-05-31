@@ -38,7 +38,6 @@ class VideoReceiver : public VideoBase, public IReceiveCallback
 		void setFirstFrame(bool bFirst);
 
 	private:
-	
 		bool mbInited;
 
 	private:
@@ -51,5 +50,7 @@ class VideoReceiver : public VideoBase, public IReceiveCallback
 };
 
 
-#endif 
+#endif
+
+
 

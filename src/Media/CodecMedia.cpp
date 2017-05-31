@@ -17,7 +17,12 @@
 #include "cutils/properties.h"
 
 #include <gui/Surface.h>
+
+#if HEIGHT_VERSION
+#else
 #include <gui/SurfaceTextureClient.h>
+#endif
+
 
 #include <media/ICrypto.h>
 #include <media/stagefright/MediaCodec.h>
@@ -45,12 +50,7 @@ char *mFilePath = "/sdcard/camera.h264";
 using namespace android;
 
 
-// Keep these in sync with their equivalents in MediaCodec.java !!!
-enum {
-    DEQUEUE_INFO_TRY_AGAIN_LATER            = -1,
-    DEQUEUE_INFO_OUTPUT_FORMAT_CHANGED      = -2,
-    DEQUEUE_INFO_OUTPUT_BUFFERS_CHANGED     = -3,
-};
+
 
 struct fields_t {
     jfieldID context;
@@ -109,13 +109,23 @@ static void throwCryptoException(JNIEnv *env, status_t err, const char *msg)
 static jint throwExceptionAsNecessary(
         JNIEnv *env, status_t err, const char *msg = NULL) 
 {
+
+
+#if HEIGHT_VERSION
+    if (err >= ERROR_DRM_VENDOR_MIN && err <= ERROR_DRM_VENDOR_MAX) {
+        // We'll throw our custom MediaCodec.CryptoException
+        throwCryptoException(env, err, msg);
+        return 0;
+    }
+#else
     if (err >= ERROR_DRM_WV_VENDOR_MIN && err <= ERROR_DRM_WV_VENDOR_MAX) 
-	{
+    {
         // We'll throw our custom MediaCodec.CryptoException
 
         throwCryptoException(env, err, msg);
         return 0;
     }
+#endif
 
     switch (err) 
 	{
@@ -164,27 +174,49 @@ static void JNI_API_NAME(native_configure)(
         return;
     }
 
-    sp<ISurfaceTexture> surfaceTexture;
-    if (jsurface != NULL) {
-        sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-        if (surface != NULL) {
-            surfaceTexture = surface->getSurfaceTexture();
-        } else {
-            jniThrowException(
-                    env,
-                    "java/lang/IllegalArgumentException",
-                    "The surface has been released");
-            return;
-        }
-    }
+	#if HEIGHT_VERSION
+	    sp<IGraphicBufferProducer> bufferProducer;
+	    if (jsurface != NULL) {
+		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+		if (surface != NULL) {
+		    bufferProducer = surface->getIGraphicBufferProducer();
+		} else {
+		    jniThrowException(
+		            env,
+		            "java/lang/IllegalArgumentException",
+		            "The surface has been released");
+		    return;
+		}
+	    }
 
-    sp<ICrypto> crypto;
-    if (jcrypto != NULL) {
-        crypto = JCrypto::GetCrypto(env, jcrypto);
-    }
+	    sp<ICrypto> crypto;
+	    if (jcrypto != NULL) {
+		crypto = JCrypto::GetCrypto(env, jcrypto);
+	    }
 
-    err = codec->configure(format, surfaceTexture, crypto, flags);
+	    err = codec->configure(format, bufferProducer, crypto, flags);
+	#else
+	    sp<ISurfaceTexture> surfaceTexture;
+	    if (jsurface != NULL) {
+		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+		if (surface != NULL) {
+		    surfaceTexture = surface->getSurfaceTexture();
+		} else {
+		    jniThrowException(
+		            env,
+		            "java/lang/IllegalArgumentException",
+		            "The surface has been released");
+		    return;
+		}
+	    }
 
+	    sp<ICrypto> crypto;
+	    if (jcrypto != NULL) {
+		crypto = JCrypto::GetCrypto(env, jcrypto);
+	    }
+
+	    err = codec->configure(format, surfaceTexture, crypto, flags);
+	#endif
 
     throwExceptionAsNecessary(env, err);
 }
@@ -273,21 +305,7 @@ static jobjectArray JNI_API_NAME(getBuffers)(
     if (err == OK) {
         return buffers;
     }
-	/*
-	status_t err;
-	if(input)
-	{
-		err = codec->getBuffers(env, input, &mInputBuffers);
-		if (err == OK)
-			return mInputBuffers;
-	}
-	else
-	{
-		err = codec->getBuffers(env, input, &mOutputBuffers);
-		if (err == OK)
-			return mOutputBuffers;
-	}
-	*/
+
     throwExceptionAsNecessary(env, err);
 
     return NULL;
@@ -399,10 +417,11 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 
 	ALOGTEST("startCodec------------1");
 	
-    if (codec == NULL) {
-        jniThrowException(env, "java/lang/IllegalStateException", NULL);
-        return ;
-    }
+    	if (codec == NULL) 
+	{
+        	jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        	return ;
+    	}
 	
 	size_t inputBufferIndex = 0, outputBufferIndex = 0;
 	
@@ -429,8 +448,8 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 	
 	while (err ==0 && outputBufferIndex >= 0) 
 	{
-			codec->releaseOutputBuffer(outputBufferIndex, true);
-			err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
+		codec->releaseOutputBuffer(outputBufferIndex, true);
+		err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
 	}
 
 	if (outputBufferIndex < 0) 
@@ -511,7 +530,7 @@ static void JNI_API_NAME(native_setup)(
         JNIEnv *env, jobject thiz,
         jstring name, jboolean nameIsType, jboolean encoder) 
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "native_setup . . .");
+    ALOGTEST("native_setup . . .");
 	
     if (name == NULL) {
         jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
@@ -573,8 +592,7 @@ static JNINativeMethod gMethods[] = {
 
     { "native_init", "()V", (void *)JNI_API_NAME(native_init) },
 
-    { "native_setup", "(Ljava/lang/String;ZZ)V",
-      (void *)JNI_API_NAME(native_setup) },
+    { "native_setup", "(Ljava/lang/String;ZZ)V", (void *)JNI_API_NAME(native_setup) },
 	  
 };
 
@@ -607,7 +625,8 @@ int registerNatives(JNIEnv *env) {
 	return jniRegisterNativeMethods1(env, "com/great/happyness/Codec/CodecMedia", gMethods, sizeof(gMethods) / sizeof(gMethods[0]));
 }
 
-jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+jint JNI_OnLoad(JavaVM* vm, void* reserved) 
+{
 	JNIEnv* env = NULL;
 	jint result = JNI_ERR;
 
@@ -629,10 +648,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	
 	result = JNI_VERSION_1_4;
 	char prop[PROPERTY_VALUE_MAX] = "000";
-if(property_get("prop_name", prop, NULL) != 0)
-{
+	if(property_get("prop_name", prop, NULL) != 0)
+	{
 	
-}
+	}
 	return result;
 }
 
@@ -641,7 +660,8 @@ int register_android_media_MediaCodec(JNIEnv *env) {
     return AndroidRuntime::registerNativeMethods(env, "android/media/MediaCodec", gMethods, NELEM(gMethods));
 }
 */
-int register_Java_com_great_happyness_Codec_CodecMedia(JNIEnv *env) {
+int register_Java_com_great_happyness_Codec_CodecMedia(JNIEnv *env) 
+{
     return AndroidRuntime::registerNativeMethods(env, "Java/com/great/happyness/Codec/CodecMedia", gMethods, NELEM(gMethods));
 }
 
