@@ -11,22 +11,12 @@ LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
     libnativehelper \
     libutils \
-    libbinder \
-    libmedia \
-    libui \
     liblog \
     libcutils \
     libgui \
     libstagefright \
-    libstagefright_foundation \
-    libcamera_client \
-    libstagefright_amrnb_common
+    libstagefright_foundation
 
-LOCAL_REQUIRED_MODULES := \
-    libexif_jni
-
-LOCAL_STATIC_LIBRARIES := \
-    libstagefright_amrnbenc
 
 LOCAL_C_INCLUDES += \
     external/jhead \

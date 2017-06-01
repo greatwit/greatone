@@ -1,8 +1,5 @@
 
 
-
-#define LOG_TAG "MediaCodec-JNI"
-
 #include <utils/Log.h>
 
 #include "android_media_MediaCodec.h"
@@ -33,13 +30,15 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include <system/window.h>
 
-#define JNI_API_NAME(A)		Java_com_great_happyness_Codec_CodecMedia_##A 
+#include "VideoSender.h"
+#include "VideoReceiver.h"
 
+#include "CodecMedia.h"
 #define TAG "CodecMedia"
 
-#define ALOGTEST(...)  __android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
+#define ALOGTEST(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
+#define ALOGE(...)		__android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
 
 #define PROPERTY_KEY_MAX    32
 #define PROPERTY_VALUE_MAX  92
@@ -49,10 +48,14 @@ char *mFilePath = "/sdcard/camera.h264";
 
 using namespace android;
 
+#ifdef __cplusplus
+extern "C" 
+{
+#endif
 
 
-
-struct fields_t {
+struct fields_t 
+{
     jfieldID context;
 
     jfieldID cryptoInfoNumSubSamplesID;
@@ -68,13 +71,16 @@ uint8_t*bufferPoint[2];
 jobject mBufferInfo;
 
 
-static sp<JMediaCodec> setMediaCodec(
-        JNIEnv *env, jobject thiz, const sp<JMediaCodec> &codec) {
+
+static sp<JMediaCodec> setMediaCodec( JNIEnv *env, jobject thiz, const sp<JMediaCodec> &codec) 
+{
     sp<JMediaCodec> old = (JMediaCodec *)env->GetIntField(thiz, gFields.context);
-    if (codec != NULL) {
+    if (codec != NULL) 
+	{
         codec->incStrong(thiz);
     }
-    if (old != NULL) {
+    if (old != NULL) 
+	{
         old->decStrong(thiz);
     }
     env->SetIntField(thiz, gFields.context, (int)codec.get());
@@ -112,7 +118,8 @@ static jint throwExceptionAsNecessary(
 
 
 #if HEIGHT_VERSION
-    if (err >= ERROR_DRM_VENDOR_MIN && err <= ERROR_DRM_VENDOR_MAX) {
+    if (err >= ERROR_DRM_VENDOR_MIN && err <= ERROR_DRM_VENDOR_MAX) 
+	{
         // We'll throw our custom MediaCodec.CryptoException
         throwCryptoException(env, err, msg);
         return 0;
@@ -126,6 +133,7 @@ static jint throwExceptionAsNecessary(
         return 0;
     }
 #endif
+
 
     switch (err) 
 	{
@@ -151,17 +159,19 @@ static jint throwExceptionAsNecessary(
     return 0;
 }
 
-static void JNI_API_NAME(native_configure)(
+
+void JNI_API_NAME(native_configure)(
         JNIEnv *env,
         jobject thiz,
         jobjectArray keys, jobjectArray values,
         jobject jsurface,
         jobject jcrypto,
-        jint flags) 
+        jint flags)
 {
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
-    if (codec == NULL) {
+    if (codec == NULL) 
+	{
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
         return;
     }
@@ -221,12 +231,13 @@ static void JNI_API_NAME(native_configure)(
     throwExceptionAsNecessary(env, err);
 }
 
-static void JNI_API_NAME(release)(JNIEnv *env, jobject thiz) 
+void JNI_API_NAME(release)(JNIEnv *env, jobject thiz)
 {
     setMediaCodec(env, thiz, NULL);
 }
 
-static void JNI_API_NAME(start)(JNIEnv *env, jobject thiz) {
+void JNI_API_NAME(start)(JNIEnv *env, jobject thiz)
+{
     ALOGV("android_media_MediaCodec_start");
 
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
@@ -250,7 +261,8 @@ static void JNI_API_NAME(start)(JNIEnv *env, jobject thiz) {
     throwExceptionAsNecessary(env, err);
 }
 
-static void JNI_API_NAME(stop)(JNIEnv *env, jobject thiz) {
+void JNI_API_NAME(stop)(JNIEnv *env, jobject thiz) 
+{
     ALOGV("android_media_MediaCodec_stop");
 
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
@@ -265,7 +277,8 @@ static void JNI_API_NAME(stop)(JNIEnv *env, jobject thiz) {
     throwExceptionAsNecessary(env, err);
 }
 
-static void JNI_API_NAME(flush)(JNIEnv *env, jobject thiz) {
+void JNI_API_NAME(flush)(JNIEnv *env, jobject thiz) 
+{
     ALOGV("android_media_MediaCodec_flush");
 
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
@@ -283,10 +296,9 @@ static void JNI_API_NAME(flush)(JNIEnv *env, jobject thiz) {
 
 jobjectArray mInputBuffers;
 jobjectArray mOutputBuffers;
-// env->DeleteGlobalRef( p_sys->input_buffers);
 
 
-static jobjectArray JNI_API_NAME(getBuffers)(
+jobjectArray JNI_API_NAME(getBuffers)(
         JNIEnv *env, jobject thiz, jboolean input) 
 {
     ALOGV("android_media_MediaCodec_getBuffers");
@@ -311,7 +323,7 @@ static jobjectArray JNI_API_NAME(getBuffers)(
     return NULL;
 }
 
-static void JNI_API_NAME(queueInputBuffer)(
+void JNI_API_NAME(queueInputBuffer)(
         JNIEnv *env,
         jobject thiz,
         jint index,
@@ -339,8 +351,7 @@ static void JNI_API_NAME(queueInputBuffer)(
 }
 
 
-static jint JNI_API_NAME(dequeueInputBuffer)(
-        JNIEnv *env, jobject thiz, jlong timeoutUs) 
+jint JNI_API_NAME(dequeueInputBuffer)(JNIEnv *env, jobject thiz, jlong timeoutUs)
 {
     ALOGV("android_media_MediaCodec_dequeueInputBuffer");
 
@@ -361,8 +372,7 @@ static jint JNI_API_NAME(dequeueInputBuffer)(
     return throwExceptionAsNecessary(env, err);
 }
 
-static jint JNI_API_NAME(dequeueOutputBuffer)(
-        JNIEnv *env, jobject thiz, jobject bufferInfo, jlong timeoutUs) 
+jint JNI_API_NAME(dequeueOutputBuffer)(JNIEnv *env, jobject thiz, jobject bufferInfo, jlong timeoutUs)
 {
     ALOGV("android_media_MediaCodec_dequeueOutputBuffer");
 
@@ -384,8 +394,7 @@ static jint JNI_API_NAME(dequeueOutputBuffer)(
     return throwExceptionAsNecessary(env, err);
 }
 
-static void JNI_API_NAME(releaseOutputBuffer)(
-        JNIEnv *env, jobject thiz, jint index, jboolean render) 
+void JNI_API_NAME(releaseOutputBuffer)(JNIEnv *env, jobject thiz, jint index, jboolean render)
 {
     ALOGV("android_media_MediaCodec_renderOutputBufferAndRelease");
 
@@ -417,11 +426,11 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 
 	ALOGTEST("startCodec------------1");
 	
-    	if (codec == NULL) 
+    if (codec == NULL) 
 	{
-        	jniThrowException(env, "java/lang/IllegalStateException", NULL);
-        	return ;
-    	}
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return ;
+    }
 	
 	size_t inputBufferIndex = 0, outputBufferIndex = 0;
 	
@@ -460,16 +469,13 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 	ALOGTEST("startCodec------------8");
 }
 
-static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
+void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
 {
-
-	
 	char length[4] = {0};
 	char data[1000000] = {0};
 
 	FILE *file = fopen(mFilePath, "rb");
 	int res = 0, dataLen = 0;
-
     
 	mBufferInfo = bufferInfo;
 	
@@ -492,9 +498,45 @@ static void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferI
 	fclose(file);
 }
 
-
-static void JNI_API_NAME(native_init)(JNIEnv *env) 
+void JNI_API_NAME(native_setup)(JNIEnv *env, jobject thiz, jstring name, jboolean nameIsType, jboolean encoder) 
 {
+	ALOGTEST("native_setup...");
+
+	if (name == NULL) 
+	{
+		jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+		return;
+	}
+
+	const char *tmp = env->GetStringUTFChars(name, NULL);
+
+	if (tmp == NULL) {
+		return;
+	}
+
+	sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
+
+	status_t err = codec->initCheck();
+
+	env->ReleaseStringUTFChars(name, tmp);
+	tmp = NULL;
+
+	if (err != OK) 
+	{
+		jniThrowException(
+			env,
+			"java/io/IOException",
+			"Failed to allocate component instance");
+		return;
+	}
+
+	setMediaCodec(env,thiz, codec);
+}
+
+void JNI_API_NAME(native_init)(JNIEnv *env, jobject thiz)
+{
+	ALOGE("native_init... ...");
+	
     jclass clazz = env->FindClass("android/media/MediaCodec");
     CHECK(clazz != NULL);
 
@@ -526,43 +568,40 @@ static void JNI_API_NAME(native_init)(JNIEnv *env)
     CHECK(gFields.cryptoInfoModeID != NULL);
 }
 
-static void JNI_API_NAME(native_setup)(
-        JNIEnv *env, jobject thiz,
-        jstring name, jboolean nameIsType, jboolean encoder) 
+
+static sp<VideoReceiver>	mpReceiveRender ;
+static sp<VideoSender>		mpSenderRender	;
+
+jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject, jstring destip, jshort port)
 {
-    ALOGTEST("native_setup . . .");
-	
-    if (name == NULL) {
-        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-        return;
-    }
+	mpSenderRender = new VideoSender();
+	mpSenderRender->Init(NULL, 0, 0, 2200);
+	const char *ip = env->GetStringUTFChars(destip, NULL);
+	jsize nLength  = env->GetStringUTFLength(destip);
+	ALOGV("Enter:AudioConnectDest----------->strIP:%s,nLength:%d,isCopy:%c",ip, nLength, isCopy);
 
-    const char *tmp = env->GetStringUTFChars(name, NULL);
+	mpSenderRender->ConnectDest(std::string(ip), port);
+	mpSenderRender->StartVideo(0);
 
-    if (tmp == NULL) {
-        return;
-    }
+	env->ReleaseStringUTFChars(destip, ip);
 
-    sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
+	return true;
+}
 
-    status_t err = codec->initCheck();
-
-    env->ReleaseStringUTFChars(name, tmp);
-    tmp = NULL;
-
-    if (err != OK) {
-        jniThrowException(
-                env,
-                "java/io/IOException",
-                "Failed to allocate component instance");
-        return;
-    }
-
-    setMediaCodec(env,thiz, codec);
+jboolean JNI_API_NAME(StopVideoSend)(JNIEnv *env, jobject)
+{
+	mpSenderRender->StopVideo();
+	return mpSenderRender->DeInit();
 }
 
 
-static JNINativeMethod gMethods[] = {
+#ifdef __cplusplus
+}
+#endif
+
+
+static JNINativeMethod gMethods[] = 
+{
     { "release", "()V", (void *)JNI_API_NAME(release) },
 
     { "native_configure",
@@ -603,25 +642,29 @@ int jniRegisterNativeMethods1(JNIEnv* env,
 {
 	jclass clazz;
 
-	__android_log_print(ANDROID_LOG_INFO, TAG, "Registering %s natives\n", className);
+	ALOGTEST("Registering %s natives\n", className);
 	clazz = env->FindClass(className);
-	__android_log_print(ANDROID_LOG_INFO, TAG, "Registering %s natives 1\n", className);
+
+	ALOGTEST("Registering %s natives 1\n", className);
 	if (clazz == NULL) 
 	{
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "Native registration unable to find class '%s'\n", className);
+		ALOGE("Native registration unable to find class '%s'\n", className);
 		return -1;
 	}
-	__android_log_print(ANDROID_LOG_INFO, TAG, "Registering %s natives 2\n", className);
+
+	ALOGTEST("Registering %s natives 2\n", className);
 	if (env->RegisterNatives(clazz, methods, numMethods) < 0) 
 	{
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "RegisterNatives failed for '%s'\n", className);
+		ALOGE("RegisterNatives failed for '%s'\n", className);
 		return -1;
 	}
-	__android_log_print(ANDROID_LOG_INFO, TAG, "Registering %s natives 3\n", className);
+	ALOGTEST("Registering %s natives 3\n", className);
+
 	return 0;
 }
 
-int registerNatives(JNIEnv *env) {
+int registerNatives(JNIEnv *env) 
+{
 	return jniRegisterNativeMethods1(env, "com/great/happyness/Codec/CodecMedia", gMethods, sizeof(gMethods) / sizeof(gMethods[0]));
 }
 
@@ -630,21 +673,21 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	JNIEnv* env = NULL;
 	jint result = JNI_ERR;
 
-	__android_log_print(ANDROID_LOG_INFO, TAG, "loading . . .1");
+	ALOGTEST("loading . . .1");
 	
 	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) 
 	{
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "GetEnv failed!");
-		return result;
+		ALOGE("GetEnv failed!");
+		return result;           
 	}
 
 	
 	if( registerNatives(env) != JNI_OK) 
 	{
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load ffmpeg");
+		ALOGE("can't load ffmpeg");
 	}
 	
-	__android_log_print(ANDROID_LOG_INFO, TAG, "loading . . .2");
+	ALOGTEST( "loading . . .2");
 	
 	result = JNI_VERSION_1_4;
 	char prop[PROPERTY_VALUE_MAX] = "000";
@@ -655,13 +698,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	return result;
 }
 
-/*
-int register_android_media_MediaCodec(JNIEnv *env) {
-    return AndroidRuntime::registerNativeMethods(env, "android/media/MediaCodec", gMethods, NELEM(gMethods));
-}
-*/
 int register_Java_com_great_happyness_Codec_CodecMedia(JNIEnv *env) 
 {
     return AndroidRuntime::registerNativeMethods(env, "Java/com/great/happyness/Codec/CodecMedia", gMethods, NELEM(gMethods));
 }
+
 
