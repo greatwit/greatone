@@ -252,6 +252,7 @@ void VideoHardCodec::AddBuffer(char*data, int dataLen)
 	
 	while (err ==0 && outputBufferIndex >= 0) 
 	{
+		
 		#if HEIGHT_VERSION
 		    mCodec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
 		#else

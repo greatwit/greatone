@@ -462,11 +462,7 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 	
 	while (err ==0 && outputBufferIndex >= 0) 
 	{
-		#if HEIGHT_VERSION
-		    codec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
-		#else
-		    codec->releaseOutputBuffer(outputBufferIndex, true);
-		#endif
+		codec->releaseOutputBuffer(outputBufferIndex, true);
 		err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
 	}
 
