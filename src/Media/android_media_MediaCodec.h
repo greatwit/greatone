@@ -24,7 +24,7 @@
 #include <utils/Errors.h>
 #include <utils/RefBase.h>
 
-#define HEIGHT_VERSION true
+#define HEIGHT_VERSION false
 
 namespace android {
 

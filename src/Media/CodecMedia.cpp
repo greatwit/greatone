@@ -70,10 +70,11 @@ static fields_t gFields;
 uint8_t*bufferPoint[2];
 jobject mBufferInfo;
 
-
+sp<JMediaCodec>  mCodec = NULL;
 
 static sp<JMediaCodec> setMediaCodec( JNIEnv *env, jobject thiz, const sp<JMediaCodec> &codec) 
 {
+	/*
     sp<JMediaCodec> old = (JMediaCodec *)env->GetIntField(thiz, gFields.context);
     if (codec != NULL) 
 	{
@@ -84,13 +85,14 @@ static sp<JMediaCodec> setMediaCodec( JNIEnv *env, jobject thiz, const sp<JMedia
         old->decStrong(thiz);
     }
     env->SetIntField(thiz, gFields.context, (int)codec.get());
-
-    return old;
+	*/
+	mCodec = codec;
+    return mCodec;
 }
 
 static sp<JMediaCodec> getMediaCodec(JNIEnv *env, jobject thiz) 
 {
-    return (JMediaCodec *)env->GetIntField(thiz, gFields.context);
+    return mCodec;//(JMediaCodec *)env->GetIntField(thiz, gFields.context);
 }
 
 
@@ -159,6 +161,79 @@ static jint throwExceptionAsNecessary(
     return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+
+void JNI_API_NAME(native_init)(JNIEnv *env, jobject thiz)
+{
+	ALOGE("native_init... ...");
+	/*
+    jclass clazz = env->FindClass("android/media/MediaCodec");
+    CHECK(clazz != NULL);
+
+    gFields.context = env->GetFieldID(clazz, "mNativeContext", "I");
+    CHECK(gFields.context != NULL);
+
+    clazz = env->FindClass("android/media/MediaCodec$CryptoInfo");
+    CHECK(clazz != NULL);
+
+    gFields.cryptoInfoNumSubSamplesID =
+        env->GetFieldID(clazz, "numSubSamples", "I");
+    CHECK(gFields.cryptoInfoNumSubSamplesID != NULL);
+
+    gFields.cryptoInfoNumBytesOfClearDataID =
+        env->GetFieldID(clazz, "numBytesOfClearData", "[I");
+    CHECK(gFields.cryptoInfoNumBytesOfClearDataID != NULL);
+
+    gFields.cryptoInfoNumBytesOfEncryptedDataID =
+        env->GetFieldID(clazz, "numBytesOfEncryptedData", "[I");
+    CHECK(gFields.cryptoInfoNumBytesOfEncryptedDataID != NULL);
+
+    gFields.cryptoInfoKeyID = env->GetFieldID(clazz, "key", "[B");
+    CHECK(gFields.cryptoInfoKeyID != NULL);
+
+    gFields.cryptoInfoIVID = env->GetFieldID(clazz, "iv", "[B");
+    CHECK(gFields.cryptoInfoIVID != NULL);
+
+    gFields.cryptoInfoModeID = env->GetFieldID(clazz, "mode", "I");
+    CHECK(gFields.cryptoInfoModeID != NULL);
+	*/
+}
+
+void JNI_API_NAME(native_setup)(JNIEnv *env, jobject thiz, jstring name, jboolean nameIsType, jboolean encoder) 
+{
+	ALOGTEST("native_setup...");
+
+	if (name == NULL) 
+	{
+		jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+		return;
+	}
+
+	const char *tmp = env->GetStringUTFChars(name, NULL);
+
+	if (tmp == NULL) {
+		return;
+	}
+
+	sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
+
+	status_t err = codec->initCheck();
+
+	env->ReleaseStringUTFChars(name, tmp);
+	tmp = NULL;
+
+	if (err != OK) 
+	{
+		jniThrowException(
+			env,
+			"java/io/IOException",
+			"Failed to allocate component instance");
+		return;
+	}
+
+	setMediaCodec(env,thiz, codec);
+}
 
 void JNI_API_NAME(native_configure)(
         JNIEnv *env,
@@ -298,8 +373,7 @@ jobjectArray mInputBuffers;
 jobjectArray mOutputBuffers;
 
 
-jobjectArray JNI_API_NAME(getBuffers)(
-        JNIEnv *env, jobject thiz, jboolean input) 
+jobjectArray JNI_API_NAME(getBuffers)(JNIEnv *env, jobject thiz, jboolean input) 
 {
     ALOGV("android_media_MediaCodec_getBuffers");
 
@@ -365,8 +439,9 @@ jint JNI_API_NAME(dequeueInputBuffer)(JNIEnv *env, jobject thiz, jlong timeoutUs
     size_t index;
     status_t err = codec->dequeueInputBuffer(&index, timeoutUs);
 
-    if (err == OK) {
-        return index;
+    if (err == OK) 
+	{
+        return index; 
     }
 
     return throwExceptionAsNecessary(env, err);
@@ -378,16 +453,17 @@ jint JNI_API_NAME(dequeueOutputBuffer)(JNIEnv *env, jobject thiz, jobject buffer
 
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
-    if (codec == NULL) {
+    if (codec == NULL) 
+	{
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
         return 0;
     }
 
     size_t index;
-    status_t err = codec->dequeueOutputBuffer(
-            env, bufferInfo, &index, timeoutUs);
+    status_t err = codec->dequeueOutputBuffer(env, bufferInfo, &index, timeoutUs);
 
-    if (err == OK) {
+    if (err == OK) 
+	{
         return index;
     }
 
@@ -427,6 +503,8 @@ int bytesToInt(char* src, int offset)
 
 void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 {
+	ALOGTEST("startCodec------------0");
+	
 	sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
 	ALOGTEST("startCodec------------1");
@@ -507,91 +585,74 @@ void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
 	fclose(file);
 }
 
-void JNI_API_NAME(native_setup)(JNIEnv *env, jobject thiz, jstring name, jboolean nameIsType, jboolean encoder) 
-{
-	ALOGTEST("native_setup...");
 
-	if (name == NULL) 
-	{
-		jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-		return;
-	}
-
-	const char *tmp = env->GetStringUTFChars(name, NULL);
-
-	if (tmp == NULL) {
-		return;
-	}
-
-	sp<JMediaCodec> codec = new JMediaCodec(env, thiz, tmp, nameIsType, encoder);
-
-	status_t err = codec->initCheck();
-
-	env->ReleaseStringUTFChars(name, tmp);
-	tmp = NULL;
-
-	if (err != OK) 
-	{
-		jniThrowException(
-			env,
-			"java/io/IOException",
-			"Failed to allocate component instance");
-		return;
-	}
-
-	setMediaCodec(env,thiz, codec);
+static JavaVM *g_JavaVM  = android::AndroidRuntime::getJavaVM(); 
+static JNIEnv *GetEnv()
+{  
+	int status;  
+    JNIEnv *envnow = NULL;  
+    status = g_JavaVM->GetEnv((void **)&envnow, JNI_VERSION_1_4);  
+    if(status < 0)  
+    {  
+        status = g_JavaVM->AttachCurrentThread(&envnow, NULL);
+        if(status < 0)
+        {
+            return NULL; 
+        }
+    }  
+    return envnow;
 }
 
-void JNI_API_NAME(native_init)(JNIEnv *env, jobject thiz)
+JavaVM *GJavaVM  = NULL;
+
+class DataReceiver : public IReceiveCallback
 {
-	ALOGE("native_init... ...");
+	public:
+		DataReceiver(JNIEnv *env, jobject thiz)
+		{
+			mEnv 	= env;
+			mThiz 	= thiz;
+		}
+		~DataReceiver(){}
+		void ReceiveSource(int64_t timeStamp, char*mimeType, void* buffer, int dataLen)
+		{
+			ALOGE("TAG 4:%s,line=:%d, data length=:%d mimetype:%s ",__FUNCTION__,__LINE__, dataLen, mimeType);
 	
-    jclass clazz = env->FindClass("android/media/MediaCodec");
-    CHECK(clazz != NULL);
-
-    gFields.context = env->GetFieldID(clazz, "mNativeContext", "I");
-    CHECK(gFields.context != NULL);
-
-    clazz = env->FindClass("android/media/MediaCodec$CryptoInfo");
-    CHECK(clazz != NULL);
-
-    gFields.cryptoInfoNumSubSamplesID =
-        env->GetFieldID(clazz, "numSubSamples", "I");
-    CHECK(gFields.cryptoInfoNumSubSamplesID != NULL);
-
-    gFields.cryptoInfoNumBytesOfClearDataID =
-        env->GetFieldID(clazz, "numBytesOfClearData", "[I");
-    CHECK(gFields.cryptoInfoNumBytesOfClearDataID != NULL);
-
-    gFields.cryptoInfoNumBytesOfEncryptedDataID =
-        env->GetFieldID(clazz, "numBytesOfEncryptedData", "[I");
-    CHECK(gFields.cryptoInfoNumBytesOfEncryptedDataID != NULL);
-
-    gFields.cryptoInfoKeyID = env->GetFieldID(clazz, "key", "[B");
-    CHECK(gFields.cryptoInfoKeyID != NULL);
-
-    gFields.cryptoInfoIVID = env->GetFieldID(clazz, "iv", "[B");
-    CHECK(gFields.cryptoInfoIVID != NULL);
-
-    gFields.cryptoInfoModeID = env->GetFieldID(clazz, "mode", "I");
-    CHECK(gFields.cryptoInfoModeID != NULL);
-}
-
+			decorder(mEnv, mThiz, (char*)buffer, dataLen);
+		}//
+		
+	private:
+		JNIEnv *mEnv;
+		jobject mThiz;
+};
 
 static sp<VideoReceiver>	mpReceiveRender ;
 static sp<VideoSender>		mpSenderRender	;
+static RtpReceive			*mpReceive = NULL;
+static DataReceiver         *mpDataRecv = NULL;
 
-jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject, jstring destip, jshort port)
+
+
+
+
+jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject thiz, jstring destip, jshort localSendPort, jshort remotePort)
 {
+	ALOGE("Enter:StartVideoSend----------->1");
 	mpSenderRender = new VideoSender();
-	mpSenderRender->Init(NULL, 0, 0, 2200);
+	ALOGE("Enter:StartVideoSend----------->2");
+	mpSenderRender->Init(NULL, 0, 0, localSendPort);
+	ALOGE("Enter:StartVideoSend----------->3");
 	const char *ip = env->GetStringUTFChars(destip, NULL);
 	jsize nLength  = env->GetStringUTFLength(destip);
-	ALOGV("Enter:AudioConnectDest----------->strIP:%s,nLength:%d,isCopy:%c",ip, nLength, isCopy);
+	ALOGV("Enter:AudioConnectDest----------->strIP:%s,nLength:%d",ip, nLength);
 
-	mpSenderRender->ConnectDest(std::string(ip), port);
+	mpDataRecv = new DataReceiver(env, thiz);
+	mpSenderRender->registerCallback(mpDataRecv);
+	
+	mpSenderRender->ConnectDest(std::string(ip), remotePort);
+	ALOGE("Enter:StartVideoSend----------->4");
 	mpSenderRender->StartVideo(0);
-
+	ALOGE("Enter:StartVideoSend----------->5");
 	env->ReleaseStringUTFChars(destip, ip);
 
 	return true;
@@ -600,7 +661,30 @@ jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject, jstring destip, jsho
 jboolean JNI_API_NAME(StopVideoSend)(JNIEnv *env, jobject)
 {
 	mpSenderRender->StopVideo();
+	SAFE_DELETE(mpDataRecv);
 	return mpSenderRender->DeInit();
+}
+
+
+jboolean JNI_API_NAME(StartVideoRecv)(JNIEnv *env, jobject thiz, jshort localRecvPort)
+{
+	mpReceive = new RtpReceive();
+	mpDataRecv = new DataReceiver(env, thiz);
+	if(mpReceive->initSession(localRecvPort))
+	{
+		mpReceive->registerCallback(mpDataRecv);
+		mpReceive->startThread();
+	}
+	return true;
+}
+
+jboolean JNI_API_NAME(StopVideoRecv)(JNIEnv *env, jobject)
+{
+	mpReceive->stopThread();
+	mpReceive->deinitSession();
+	SAFE_DELETE(mpReceive);
+	SAFE_DELETE(mpDataRecv);
+	return true;
 }
 
 
@@ -641,7 +725,12 @@ static JNINativeMethod gMethods[] =
     { "native_init", "()V", (void *)JNI_API_NAME(native_init) },
 
     { "native_setup", "(Ljava/lang/String;ZZ)V", (void *)JNI_API_NAME(native_setup) },
-	  
+	 
+	{ "StartVideoSend", "(Ljava/lang/String;SS)Z", (void *)JNI_API_NAME(StartVideoSend) },
+	{ "StopVideoSend", "()Z", (void *)JNI_API_NAME(StopVideoSend) },
+	{ "StartVideoRecv", "(S)Z", (void *)JNI_API_NAME(StartVideoRecv) },
+	{ "StopVideoRecv", "()Z", (void *)JNI_API_NAME(StopVideoRecv) },
+	
 };
 
 int jniRegisterNativeMethods1(JNIEnv* env,
@@ -684,12 +773,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	ALOGTEST("loading . . .1");
 	
+	GJavaVM = vm;
+	
 	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) 
 	{
 		ALOGE("GetEnv failed!");
 		return result;           
 	}
-
 	
 	if( registerNatives(env) != JNI_OK) 
 	{
@@ -702,8 +792,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	char prop[PROPERTY_VALUE_MAX] = "000";
 	if(property_get("prop_name", prop, NULL) != 0)
 	{
-	
 	}
+	
 	return result;
 }
 

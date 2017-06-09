@@ -10,8 +10,8 @@ LOCAL_SRC_FILES:= \
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
     libnativehelper \
+	liblog \
     libutils \
-    liblog \
     libcutils \
     libgui \
     libstagefright \
@@ -42,8 +42,8 @@ LOCAL_C_INCLUDES += \
 LOCAL_C_INCLUDES += external/stlport/stlport bionic
 
 LOCAL_CFLAGS +=
+#LOCAL_LDLIBS := -lpthread
 
-LOCAL_LDLIBS := -lpthread
 LOCAL_SHARED_LIBRARIES += libstlport libmedia_jni
 
 

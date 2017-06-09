@@ -86,7 +86,7 @@ bool VideoReceiver::StartVideo(int cardid)
 		return mbInited;
 	
 
-	ALOGD("TAG 2,function %s,line:%d startVideoReceive Width:%d,Height:%d", __FUNCTION__, __LINE__, miPixelWidth, miPixelHeight);
+	//ALOGD("TAG 2,function %s,line:%d startVideoReceive Width:%d,Height:%d", __FUNCTION__, __LINE__, miPixelWidth, miPixelHeight);
 
 
 	mpReceive->startThread();

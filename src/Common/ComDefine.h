@@ -24,7 +24,7 @@
 #define DEV_NAME	"/dev/video%d"
 
 
-#define  LOGTAG false
+#define  LOGTAG true
 
 #if LOGTAG
 	#define ALOGV(...)  __android_log_print(ANDROID_LOG_VERBOSE,TAG,__VA_ARGS__)
@@ -40,7 +40,7 @@
 	#define ALOGW(...)  
 #endif
 
-#define AUDIOLOGW(...)  //__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
+#define AUDIOLOGW(...)  __android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
 #define VIDEOLOGD(...)	__android_log_print(ANDROID_LOG_DEBUG,	TAG,  __VA_ARGS__)
 #define TESTLOGW(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
 

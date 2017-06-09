@@ -52,7 +52,7 @@ bool VideoSender::Init(ANativeWindow* window, int widht, int height, short sendP
 	mpSender = new RtpSender();
 	if(!mpSender->initSession(sendPort))
 	{
-		mpSender = NULL;
+		SAFE_DELETE(mpSender);
 		ALOGE("TAG 2,function %s,line:%d mpSender->initSession() failed.", __FUNCTION__, __LINE__);
 		return false;
 	}
@@ -163,7 +163,6 @@ void VideoSender::setFirstFrame(bool bFirst)
 	mFirstFrame = bFirst;
 }
 
-
 bool VideoSender::sendBuffer(void*buff, int dataLen, char*hdrextdata, int numhdrextwords, int64_t timeStamp)
 {
 	if(mbInited)
@@ -171,6 +170,11 @@ bool VideoSender::sendBuffer(void*buff, int dataLen, char*hdrextdata, int numhdr
 		mpSender->sendBuffer(buff, dataLen, hdrextdata, numhdrextwords, timeStamp);
 	}
 	return false;
+}
+
+void VideoSender::registerCallback(IReceiveCallback *base)
+{
+	mStreamBase = base;
 }
 
 bool VideoSender::threadLoop()
@@ -188,7 +192,12 @@ bool VideoSender::threadLoop()
 		
 		VIDEOLOGD("startCodec------------3 res:%d dataLen:%d", res, dataLen);
 		
-		sendBuffer(mData, dataLen, (char*)"h264", 5, 0);
+		//sendBuffer(mData, dataLen, (char*)"h264", 5, 0);
+		
+		if(mStreamBase!=NULL)
+		{
+				mStreamBase->ReceiveSource(0, (char*)"", (void*)mData, dataLen);
+		}
 		
 		usleep(50*1000);
 	}

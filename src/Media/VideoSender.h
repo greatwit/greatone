@@ -12,6 +12,8 @@
 #include "VideoBase.h"
 #include "IVideoCallback.h"
 
+#include "IReceiveCallback.h"
+
 using namespace android;
 
 class VideoSender : public VideoBase, public IVideoCallback
@@ -34,6 +36,8 @@ class VideoSender : public VideoBase, public IVideoCallback
 		bool IsRunning();
 		bool sendBuffer(void*buff, int dataLen, char*hdrextdata, int numhdrextwords, int64_t timeStamp);
 
+		void	registerCallback(IReceiveCallback *base);
+		
 	protected:
 		bool isFirstFrame();
 		void setFirstFrame(bool bFirs);
@@ -56,6 +60,8 @@ class VideoSender : public VideoBase, public IVideoCallback
 		
 		char mcharLength[4];
 		char mData[1000000];
+		
+		IReceiveCallback		*mStreamBase;
 };
 
 #endif
