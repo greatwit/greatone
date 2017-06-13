@@ -204,7 +204,7 @@ void JNI_API_NAME(native_setup)(JNIEnv *env, jobject thiz, jstring name, jboolea
 {
 	ALOGTEST("native_setup...");
 
-	if (name == NULL) 
+	if (name == NULL)
 	{
 		jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
 		return;
@@ -275,29 +275,35 @@ void JNI_API_NAME(native_configure)(
 	    }
 
 	    sp<ICrypto> crypto;
-	    if (jcrypto != NULL) {
-		crypto = JCrypto::GetCrypto(env, jcrypto);
+	    if (jcrypto != NULL) 
+		{
+			crypto = JCrypto::GetCrypto(env, jcrypto);
 	    }
 
 	    err = codec->configure(format, bufferProducer, crypto, flags);
 	#else
 	    sp<ISurfaceTexture> surfaceTexture;
-	    if (jsurface != NULL) {
-		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-		if (surface != NULL) {
-		    surfaceTexture = surface->getSurfaceTexture();
-		} else {
-		    jniThrowException(
-		            env,
-		            "java/lang/IllegalArgumentException",
-		            "The surface has been released");
-		    return;
-		}
+	    if (jsurface != NULL) 
+		{
+			sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+			if (surface != NULL) 
+			{
+				surfaceTexture = surface->getSurfaceTexture();
+			} 
+			else 
+			{
+				jniThrowException(
+						env,
+						"java/lang/IllegalArgumentException",
+						"The surface has been released");
+				return;
+			}
 	    }
 
 	    sp<ICrypto> crypto;
-	    if (jcrypto != NULL) {
-		crypto = JCrypto::GetCrypto(env, jcrypto);
+	    if (jcrypto != NULL) 
+		{
+			crypto = JCrypto::GetCrypto(env, jcrypto);
 	    }
 
 	    err = codec->configure(format, surfaceTexture, crypto, flags);
@@ -317,7 +323,8 @@ void JNI_API_NAME(start)(JNIEnv *env, jobject thiz)
 
     sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
-    if (codec == NULL) {
+    if (codec == NULL) 
+	{
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
         return;
     }
@@ -503,11 +510,11 @@ int bytesToInt(char* src, int offset)
 
 void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 {
-	ALOGTEST("startCodec------------0");
+	ALOGTEST("decorder------------0");
 	
 	sp<JMediaCodec> codec = getMediaCodec(env, thiz);
 
-	ALOGTEST("startCodec------------1");
+	ALOGTEST("decorder------------1");
 	
     if (codec == NULL) 
 	{
@@ -523,7 +530,7 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 	
 	
 	err = codec->dequeueInputBuffer(&inputBufferIndex, -1);
-	ALOGTEST("startCodec------------4 err:%d", err);
+	ALOGTEST("decorder------------4 err:%d", err);
 
 
 	uint8_t* inputChar = bufferPoint[inputBufferIndex];
@@ -532,28 +539,7 @@ void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
 	err = codec->queueInputBuffer(inputBufferIndex, 0, dataLen, mCount * 1000000 / 20, 0, &errorDetailMsg);
 	mCount++;
 	
-	ALOGTEST("startCodec------------6 err:%d input index:%d inputChar addr:%d", err, inputBufferIndex, inputChar);
-	
-	
-	err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
-	ALOGTEST("startCodec------------7 err:%d outputBufferIndex:%d", err, outputBufferIndex);
-	
-	while (err ==0 && outputBufferIndex >= 0) 
-	{
-		#if HEIGHT_VERSION
-		    codec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
-		#else
-		    codec->releaseOutputBuffer(outputBufferIndex, true);
-		#endif
-		err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
-	}
-
-	if (outputBufferIndex < 0) 
-	{
-		ALOGTEST("startCodec------------err :%d ", outputBufferIndex);
-	}
-	
-	ALOGTEST("startCodec------------8");
+	ALOGTEST("decorder------------6 err:%d input index:%d inputChar addr:%d", err, inputBufferIndex, inputChar);
 }
 
 void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
@@ -566,8 +552,12 @@ void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
     
 	mBufferInfo = bufferInfo;
 	
+	sp<JMediaCodec> codec = getMediaCodec(env, thiz);
+	size_t outputBufferIndex = 0;
+	status_t err;
 	do 
 	{
+		/*
 		res = fread(length, 4, 1, file);
 		if(res>0)
 		{
@@ -580,7 +570,27 @@ void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz, jobject bufferInfo)
 			
 			usleep(50*1000);
 		}
-	} while (res>0);
+		*/
+		    usleep(50*1000);
+			err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
+			ALOGTEST("startCodec------------7 err:%d outputBufferIndex:%d", err, outputBufferIndex);
+			while (err ==0 && outputBufferIndex >= 0) 
+			{
+				#if HEIGHT_VERSION
+					codec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
+				#else
+					codec->releaseOutputBuffer(outputBufferIndex, true);
+				#endif
+				err = codec->dequeueOutputBuffer(env, mBufferInfo, &outputBufferIndex, 0);
+			}
+
+			if (outputBufferIndex < 0) 
+			{
+				ALOGTEST("startCodec------------err :%d ", outputBufferIndex);
+			}
+			
+			ALOGTEST("startCodec------------8");
+	} while (true);
 
 	fclose(file);
 }
@@ -626,14 +636,12 @@ class DataReceiver : public IReceiveCallback
 		jobject mThiz;
 };
 
+
+
 static sp<VideoReceiver>	mpReceiveRender ;
 static sp<VideoSender>		mpSenderRender	;
 static RtpReceive			*mpReceive = NULL;
 static DataReceiver         *mpDataRecv = NULL;
-
-
-
-
 
 jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject thiz, jstring destip, jshort localSendPort, jshort remotePort)
 {
