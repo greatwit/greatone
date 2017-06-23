@@ -45,9 +45,9 @@ bool RtpReceive::initSession(short localPort)
 	if (iStatus >= 0)
 	{
 		mSession.SetDefaultPayloadType(0);
-		mSession.SetDefaultMark(false);
+		mSession.SetDefaultMark(true);
 		mSession.SetMaximumPacketSize(MAX_PACKET_SIZE);
-		mSession.SetDefaultTimestampIncrement(30);
+		mSession.SetDefaultTimestampIncrement(320);
 	}
 	else
 	{

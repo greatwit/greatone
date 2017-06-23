@@ -60,6 +60,13 @@ enum	MACHINE_PATTERN
 		  ROOM_MODE_FA
 };
 
+//消息头
+struct Buffer
+{
+	int num;
+	char*buff;
+	struct Buffer * next;
+};
 
 /*****************************************audio***********************************************/
 const unsigned int AUDIO_INNER_CARD		= 0;
@@ -170,7 +177,7 @@ const int VIDEO_REQ_LEN		= strlen(VIDEO_REQ)+1;
 const int VIDEO_TEAR_LEN	= strlen(VIDEO_TEAR)+1;
 
 
-#define MAX_PACKET_SIZE	((60* 1024) - 1)
+#define MAX_PACKET_SIZE	((64* 1024) - 1)
 
 /****************************************rtp***************************************************/
 

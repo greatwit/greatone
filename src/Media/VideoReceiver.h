@@ -9,6 +9,8 @@
 #include <android/native_window.h>
 #include <string>
 
+
+#include "GMediaCodec.h"
 #include "RtpReceive.h"
 #include "VideoBase.h"
 
@@ -22,7 +24,7 @@ class VideoReceiver : public VideoBase, public IReceiveCallback
 		VideoReceiver();
 		virtual ~VideoReceiver();
 
-		bool Init(ANativeWindow *pNativeWindow, int nWidth, int nHeight, short recvPort);
+		bool Init(sp<AMessage> &format, sp<Surface> &surface, sp<ICrypto> &crypto, int flags, short recvPort);
 		bool DeInit();
 		bool IsInited();
 		bool StartVideo(int cardid);
@@ -41,12 +43,14 @@ class VideoReceiver : public VideoBase, public IReceiveCallback
 		bool mbInited;
 
 	private:
+	    sp<GMediaCodec>  			mCodec;
+		RtpReceive					*mpReceive;
+		
 		bool						mbFirstWrite;
 		bool						mRunning;
-	
 		bool 						mbTakeSnapShot;
 	
-		RtpReceive					*mpReceive;
+		
 };
 
 

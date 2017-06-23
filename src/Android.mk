@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
     $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/*.c*)) \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Audio/*.c*)) \
+	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/RtpTrans/*.c*)) \
     $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/RtpTrans/rtplib/jrtplib/*.c*)) \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Common/*.c*)) 
 
@@ -44,7 +45,7 @@ LOCAL_C_INCLUDES += external/stlport/stlport bionic
 LOCAL_CFLAGS +=
 #LOCAL_LDLIBS := -lpthread
 
-LOCAL_SHARED_LIBRARIES += libstlport libmedia_jni
+LOCAL_SHARED_LIBRARIES += libstlport
 
 
 LOCAL_MODULE:= libgreat_media

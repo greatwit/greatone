@@ -46,6 +46,12 @@ bool VideoSender::Init(ANativeWindow* window, int widht, int height, short sendP
 	mVideoHeight = height;
 
 	mFile = fopen(gFilePath, "rb");
+	if(mFile!=NULL)
+	{
+		//fseek(mFile, 0, SEEK_SET);
+		rewind(mFile);
+		ALOGE("function %s,line:%d fopen successfully.", __FUNCTION__, __LINE__);
+	}
 	mcharLength[4] = {0};
 	mData[1000000] = {0};
 
@@ -53,7 +59,7 @@ bool VideoSender::Init(ANativeWindow* window, int widht, int height, short sendP
 	if(!mpSender->initSession(sendPort))
 	{
 		SAFE_DELETE(mpSender);
-		ALOGE("TAG 2,function %s,line:%d mpSender->initSession() failed.", __FUNCTION__, __LINE__);
+		ALOGE("function %s,line:%d mpSender->initSession() failed.", __FUNCTION__, __LINE__);
 		return false;
 	}
 
@@ -122,12 +128,13 @@ bool VideoSender::StartVideo(int deivceid)
 	if(mbRunning)
 		return false;
 
-
+	mbRunning = true;
+	
 	VIDEOLOGD("TAG 1,function %s,line:%d start width:%d height:%d ", __FUNCTION__, __LINE__, mVideoWidth, mVideoHeight);
 	run("SenderServer", PRIORITY_URGENT_DISPLAY);
 	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
 
-	mbRunning = true;
+	
 
 	return true;
 }
@@ -165,10 +172,8 @@ void VideoSender::setFirstFrame(bool bFirst)
 
 bool VideoSender::sendBuffer(void*buff, int dataLen, char*hdrextdata, int numhdrextwords, int64_t timeStamp)
 {
-	if(mbInited)
-	{
-		mpSender->sendBuffer(buff, dataLen, hdrextdata, numhdrextwords, timeStamp);
-	}
+	//mpSender->sendBuffer(buff, dataLen, hdrextdata, numhdrextwords, timeStamp);
+	mpSender->sendBufferEx(buff, dataLen, timeStamp);
 	return false;
 }
 
@@ -179,29 +184,31 @@ void VideoSender::registerCallback(IReceiveCallback *base)
 
 bool VideoSender::threadLoop()
 {
-	if(!mbRunning)
-		return true;
-
 	int res = 0, dataLen = 0;
 	
 	res = fread(mcharLength, 4, 1, mFile);
+	VIDEOLOGD("function %s,line:%d threadLoop --------- res:%d",__FUNCTION__,__LINE__, res);
 	if(res>0)
 	{
 		dataLen = charsToInt(mcharLength,0);
 		res = fread(mData, dataLen, 1, mFile);
 		
 		VIDEOLOGD("startCodec------------3 res:%d dataLen:%d", res, dataLen);
-		
-		//sendBuffer(mData, dataLen, (char*)"h264", 5, 0);
+		//if(dataLen<MAX_PACKET_SIZE)
+			sendBuffer(mData, dataLen, (char*)"h264", 5, 0);
 		
 		if(mStreamBase!=NULL)
 		{
-				mStreamBase->ReceiveSource(0, (char*)"", (void*)mData, dataLen);
+				//mStreamBase->ReceiveSource(0, (char*)"", (void*)mData, dataLen);
 		}
 		
-		usleep(50*1000);
+		
 	}
+	else
+		return false;
 
+	usleep(50*1000);
+	
 	return true;
 }
 

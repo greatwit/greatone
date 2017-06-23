@@ -21,7 +21,7 @@ class VideoBase : public Thread
 		VideoBase();
 		virtual ~VideoBase();
 
-		virtual bool Init(ANativeWindow *pNativeWindow, int nWidth, int nHeight, short port) = 0;
+		virtual bool Init(ANativeWindow *pNativeWindow, int nWidth, int nHeight, short port);
 		virtual bool DeInit() = 0;
 		virtual bool IsInited()	= 0;
 		virtual bool StartVideo(int cardid)	= 0;

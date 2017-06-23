@@ -14,6 +14,7 @@ extern "C"
 	JNIEXPORT void JNICALL JNI_API_NAME(native_configure)( JNIEnv *env, jobject thiz, jobjectArray keys, jobjectArray values, jobject jsurface, jobject jcrypto, jint flags);
 	JNIEXPORT void JNICALL JNI_API_NAME(release)(JNIEnv *env, jobject thiz);
 	JNIEXPORT void JNICALL JNI_API_NAME(start)(JNIEnv *env, jobject thiz);
+	
 	JNIEXPORT void JNICALL JNI_API_NAME(stop)(JNIEnv *env, jobject thiz);
 	JNIEXPORT void JNICALL JNI_API_NAME(flush)(JNIEnv *env, jobject thiz);
 	JNIEXPORT jobjectArray JNICALL JNI_API_NAME(getBuffers)( JNIEnv *env, jobject thiz, jboolean input);
@@ -28,7 +29,7 @@ extern "C"
 
 	JNIEXPORT jboolean JNICALL JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject, jstring destip, jshort localSendPort, jshort remotePort);
 	JNIEXPORT jboolean JNICALL JNI_API_NAME(StopVideoSend)(JNIEnv *env, jobject);
-	JNIEXPORT jboolean JNICALL JNI_API_NAME(StartVideoRecv)(JNIEnv *env, jobject, jshort localRecvPort);
+	JNIEXPORT jboolean JNICALL JNI_API_NAME(StartVideoRecv)(JNIEnv *env, jobject thiz, jobjectArray keys, jobjectArray values, jobject jsurface, jobject jcrypto, jint flags, jshort localRecvPort);
 	JNIEXPORT jboolean JNICALL JNI_API_NAME(StopVideoRecv)(JNIEnv *env, jobject);
 
 #ifdef __cplusplus

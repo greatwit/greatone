@@ -1,7 +1,14 @@
 
+
 #include <android_runtime/AndroidRuntime.h>
 #include <android_runtime/android_view_Surface.h>
 #include <gui/Surface.h>
+#if HEIGHT_VERSION
+#else
+#include <gui/SurfaceTextureClient.h>
+#endif
+
+#include <media/ICrypto.h>
 
 #include "VideoReceiver.h"
 
@@ -20,21 +27,51 @@ VideoReceiver::VideoReceiver()
 	{
 		mbFirstFrame = true;
 
+		mCodec = new GMediaCodec( "video/avc", true, false);//nameIsType, encoder
+		
 		ALOGV("VideoReceiver construct.");
 	}
 
 VideoReceiver::~VideoReceiver() 
 {
+	mCodec = NULL;
 	ALOGD("TAG ,function %s,line:%d VideoReceiver destroyed.",__FUNCTION__,__LINE__);
 }
 
-bool VideoReceiver::Init(ANativeWindow *pNativeWindow, int nWidth, int nHeight, short recvPort) 
+bool VideoReceiver::Init(sp<AMessage> &format, sp<Surface> &surface, sp<ICrypto> &crypto, int flags, short recvPort) 
 {
 	ALOGV("Enter:init VideoReceiver----------->");
-
+    
 	if(mbInited)
 		return mbInited;
 
+	status_t err;
+	
+		#if HEIGHT_VERSION
+	    sp<IGraphicBufferProducer> bufferProducer;
+		if (surface != NULL) 
+		{
+		    bufferProducer = surface->getIGraphicBufferProducer();
+		} 
+		else 
+		{
+		    return false;
+		}
+
+	    err = mCodec->configure(format, bufferProducer, crypto, flags);
+	#else
+	    sp<ISurfaceTexture> surfaceTexture;
+		if (surface != NULL) 
+		{
+			surfaceTexture = surface->getSurfaceTexture();
+		} 
+		else 
+		{
+			return false;
+		}
+
+	    err = mCodec->configure(format, surfaceTexture, crypto, flags);
+	#endif
 
 	mpReceive = new RtpReceive();
 	if(mpReceive->initSession(recvPort))
@@ -81,15 +118,9 @@ bool VideoReceiver::IsInited()
 bool VideoReceiver::StartVideo(int cardid)
 {
 	bool bRest = true;
+
+	ALOGD("function %s,line:%d VideoReceiver::StartVideo() successful 1.",__FUNCTION__,__LINE__);
 	
-	if(!mbInited)
-		return mbInited;
-	
-
-	//ALOGD("TAG 2,function %s,line:%d startVideoReceive Width:%d,Height:%d", __FUNCTION__, __LINE__, miPixelWidth, miPixelHeight);
-
-
-	mpReceive->startThread();
 
 	if(false == mRunning)
 	{
@@ -98,8 +129,10 @@ bool VideoReceiver::StartVideo(int cardid)
 		run("VideoReceiver", PRIORITY_URGENT_DISPLAY);
 		ALOGV("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
 	}
+	
+	mpReceive->startThread();
 
-	ALOGV("LEAVE:VideoReceiver::StartVideo() successful.,function %s,line:%d",__FUNCTION__,__LINE__);
+	ALOGE("function %s,line:%d VideoReceiver::StartVideo() successful 2.",__FUNCTION__,__LINE__);
 
 	return bRest;
 }
@@ -109,10 +142,11 @@ bool VideoReceiver::StopVideo()
 	bool bRest = true;
 	ALOGD("function %s,line:%d TalkbackFinish VideoReceiver StopVideo...1", __FUNCTION__,__LINE__);
 
-	mRunning = false;
-
 	mpReceive->stopThread();
-
+	
+	mCodec->stopCodec();
+	
+	mRunning = false;
 	requestExit();
 
 	ALOGD("function %s,line:%d TalkbackFinish VideoReceiver StopVideo...2", __FUNCTION__,__LINE__);
@@ -138,25 +172,26 @@ void VideoReceiver::setFirstFrame(bool bFirst)
 
 bool VideoReceiver::threadLoop()
 {
-		usleep(20000);
-	
-		return true;
+	ALOGD("function %s,line:%d threadLoop------------------------", __FUNCTION__,__LINE__);
+	mCodec->startCodec();
+	return true;
 }
 
 
 bool VideoReceiver::setBuffer(void* data,int len, int64_t timeStamp)
 {
-
+	mCodec->addBuffer((char*)data, len);
 	return true;
 }
 
 void VideoReceiver::ReceiveSource(int64_t timeStamp, char*mimeType, void* buffer, int dataLen)
 {
-	if(0 == strcmp(mimeType, MIME_H264))
+	ALOGD("function:%s,line=:%d, data length=:%d mimetype:%s ",__FUNCTION__,__LINE__, dataLen, mimeType);
+	//if(0 == strcmp(mimeType, MIME_H264))
 	{
 		setBuffer(buffer, dataLen, timeStamp);
 	}
-	//ALOGD("TAG 4:%s,line=:%d, data length=:%d mimetype:%s ",__FUNCTION__,__LINE__, dataLen, mimeType);
+	
 
 	return;
 }

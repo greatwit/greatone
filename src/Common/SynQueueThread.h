@@ -1,5 +1,5 @@
-#ifndef QUEUE_THREAD_H_
-#define QUEUE_THREAD_H_
+#ifndef SYN_QUEUE_THREAD_H_
+#define SYN_QUEUE_THREAD_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,13 +14,15 @@
 
 
 //线程基类，实现线程的创建及删除
-class QueueThread
+class SynQueueThread
 {
 public:
-    QueueThread();
-    virtual ~QueueThread();
+    SynQueueThread();
+    virtual ~SynQueueThread();
 	bool  StartThread(char *tag);
 	bool  StopThread();
+	bool run(char*tag, int level);
+	bool requestExit();
 	bool  AddBuffer(char*buff, int len);
 	virtual void  ThreadLoop(char*buff, int len);
 	
@@ -36,7 +38,6 @@ private:
 	pthread_t				mPid;
 
 	pthread_mutex_t			mMutex;    /// < 互斥锁
-	pthread_cond_t			mCond;        /// < 唤醒机制
 
 	int						mDataCount;
 	bool					mRunning;

@@ -8,7 +8,7 @@
 #include "RtpSender.h"
 
 
-#define SEND_PACKETSIZE		36000
+#define SEND_PACKETSIZE		60000
 
  
 RtpSender::RtpSender()
@@ -55,7 +55,7 @@ bool RtpSender::initSession(short localPort)
 	if(iStatus>=0)
 	{
 		mSession.SetDefaultPayloadType(0);
-		mSession.SetDefaultMark(false);
+		mSession.SetDefaultMark(true);
 		mSession.SetMaximumPacketSize(MAX_PACKET_SIZE);
 		mSession.SetDefaultTimestampIncrement(30);
 	}
@@ -148,10 +148,10 @@ bool RtpSender::sendBuffer(void*buff, int dataLen,  char*hdrextdata, int numhdre
 	if(!mInited)
 		return mInited;
 
-	if(dataLen>=MAX_PACKET_SIZE)
+	//if(dataLen>=MAX_PACKET_SIZE)
 	{
 		ALOGE("function: %s, line: %d, data len big than max_packet_size.", __FUNCTION__, __LINE__);
-		return false;
+		//return false;
 	}
 	
 	iStatus = mSession.SendPacketEx((void *)buff, dataLen, 0, hdrextdata, numhdrextwords);  
@@ -267,18 +267,14 @@ bool RtpSender::sendBufferEx1(unsigned char* sendBuf,int buflen)
 
 bool RtpSender::sendBufferEx(void*buff, int buflen, int64_t timeStamp)
 {
-	unsigned char *pSendTemp = (unsigned char *)buff;  
 	int packetSize=SEND_PACKETSIZE;
 	int status = 0;  
-	char sendbuf[SEND_PACKETSIZE];   //发送的数据缓冲  
-	memset(sendbuf,0,SEND_PACKETSIZE);  
-
-	printf("send packet length %d \n",buflen);  
+	
+	char*tempbuff = (char*)buff;
 
 	if ( buflen <= packetSize )  
 	{   
-		memcpy(sendbuf,pSendTemp,buflen); 
-		mSession.SendPacket((void *)sendbuf, buflen, 0, false, timeStamp);
+		status = mSession.SendPacketEx(buff, buflen, 0, (char*)"h264", 5);  
 		if(status<0)
 			ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 	}    
@@ -288,42 +284,24 @@ bool RtpSender::sendBufferEx(void*buff, int buflen, int64_t timeStamp)
 		mSession.SetDefaultMark(false);  
 		//printf("buflen = %d\n",buflen);  
 		//得到该需要用多少长度为MAX_RTP_PKT_LENGTH字节的RTP包来发送  
-		int fullLen=0,tailLen=0;    
-		fullLen = buflen / packetSize;  
-		tailLen = buflen % packetSize;  
-		int t=0;//用指示当前发送的是第几个分片RTP包  
+		int fullLen=0,tailLen=0,t=0;
+		fullLen = buflen / packetSize;
+		tailLen = buflen % packetSize;
 
-		char nalHeader = pSendTemp[0]; // NALU
-		string headerTem = "";
-		string header="";
-		if(0 == tailLen)
-		{
-			header=intToString(fullLen)+":";
-			fullLen--;
-		}
-		else
-		{
-			header=intToString(fullLen+1)+":";
-		}
-
+		string header="h264";
 		for(t=0;t<fullLen;t++)
-		{   
-			headerTem=header+intToString(t);
-			memcpy(sendbuf,&pSendTemp[t*packetSize],packetSize);  
-			status = mSession.SendPacketEx((void *)sendbuf,packetSize, t, headerTem.c_str(), headerTem.length());   
+		{     
+			status = mSession.SendPacketEx((void *)(tempbuff + t*packetSize), packetSize, t, header.c_str(), header.length());   
 			if(status<0)
 				ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
-		}   
+		}
 
-		//设置标志位Mark为1  
-		mSession.SetDefaultMark(true);
-		int iSendLen;  
-		headerTem=header+intToString(t);
-		iSendLen = buflen - t*packetSize;  
-		memcpy(sendbuf,&pSendTemp[t*packetSize],iSendLen);  
-		status = mSession.SendPacket((void *)sendbuf,iSendLen, t, headerTem.c_str(), headerTem.length());  
+		status = mSession.SendPacketEx((void *)(tempbuff + t*packetSize), tailLen, t, header.c_str(), header.length());  
 		if(status<0)
 			ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+		
+		//设置标志位Mark为1  
+		mSession.SetDefaultMark(true);
 	}
 	return true;
 }

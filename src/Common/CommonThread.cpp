@@ -76,14 +76,14 @@ bool CommonThread::run(char*tag, int level)
 
 bool CommonThread::requestExit()
 {
-	CMutex::Autolock _l(mLock);
+	//CMutex::Autolock _l(mLock);
 	mRunning = false;
 	return true;
 }
 
 bool CommonThread::getRunning()
 {
-	CMutex::Autolock _l(mLock);
+	//CMutex::Autolock _l(mLock);
 	return mRunning;
 }
 
@@ -94,7 +94,7 @@ void* CommonThread::ThreadWork(void* context)
 
 	CommonThread *pContext = (CommonThread*)context;
 	
-	while(pContext->getRunning())
+	//while(pContext->getRunning())
 		pContext->threadLoop();
 
 	return ((void*)1); 
