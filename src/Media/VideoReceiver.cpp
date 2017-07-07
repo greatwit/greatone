@@ -24,13 +24,13 @@ VideoReceiver::VideoReceiver()
 		:mRunning(false)
 		,mbInited(false)
 		,VideoBase()
-	{
-		mbFirstFrame = true;
+{
+	mbFirstFrame = true;
 
-		mCodec = new GMediaCodec( "video/avc", true, false);//nameIsType, encoder
-		
-		ALOGV("VideoReceiver construct.");
-	}
+	mCodec = new CodecBase( "video/avc", true, false);//nameIsType, encoder
+	
+	ALOGV("VideoReceiver construct.");
+}
 
 VideoReceiver::~VideoReceiver() 
 {
@@ -47,31 +47,7 @@ bool VideoReceiver::Init(sp<AMessage> &format, sp<Surface> &surface, sp<ICrypto>
 
 	status_t err;
 	
-		#if HEIGHT_VERSION
-	    sp<IGraphicBufferProducer> bufferProducer;
-		if (surface != NULL) 
-		{
-		    bufferProducer = surface->getIGraphicBufferProducer();
-		} 
-		else 
-		{
-		    return false;
-		}
-
-	    err = mCodec->configure(format, bufferProducer, crypto, flags);
-	#else
-	    sp<ISurfaceTexture> surfaceTexture;
-		if (surface != NULL) 
-		{
-			surfaceTexture = surface->getSurfaceTexture();
-		} 
-		else 
-		{
-			return false;
-		}
-
-	    err = mCodec->configure(format, surfaceTexture, crypto, flags);
-	#endif
+	mCodec->CreateCodec(format, surface, crypto, flags);
 
 	mpReceive = new RtpReceive();
 	if(mpReceive->initSession(recvPort))
@@ -176,7 +152,6 @@ bool VideoReceiver::threadLoop()
 	mCodec->startCodec();
 	return true;
 }
-
 
 bool VideoReceiver::setBuffer(void* data,int len, int64_t timeStamp)
 {

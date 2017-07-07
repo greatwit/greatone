@@ -1,5 +1,5 @@
 
-// #define LOG_NDEBUG 0
+
 #define LOG_TAG "AndroidMediaUtils"
 
 #include <utils/Log.h>

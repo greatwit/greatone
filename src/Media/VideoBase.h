@@ -23,7 +23,6 @@ class VideoBase : public Thread
 
 		virtual bool Init(ANativeWindow *pNativeWindow, int nWidth, int nHeight, short port);
 		virtual bool DeInit() = 0;
-		virtual bool IsInited()	= 0;
 		virtual bool StartVideo(int cardid)	= 0;
 		virtual bool StopVideo()	= 0;
 		virtual void RegisterRecorder(RecordBase*record) = 0;

@@ -10,7 +10,8 @@
 #include <string>
 
 
-#include "GMediaCodec.h"
+#include "CodecBase.h"
+
 #include "RtpReceive.h"
 #include "VideoBase.h"
 
@@ -43,7 +44,7 @@ class VideoReceiver : public VideoBase, public IReceiveCallback
 		bool mbInited;
 
 	private:
-	    sp<GMediaCodec>  			mCodec;
+	    sp<CodecBase>  			mCodec;
 		RtpReceive					*mpReceive;
 		
 		bool						mbFirstWrite;
