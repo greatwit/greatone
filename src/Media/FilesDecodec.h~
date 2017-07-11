@@ -1,5 +1,5 @@
-#ifndef TEST_ENCODER_H_
-#define TEST_ENCODER_H_
+#ifndef FILES_DECODEC_H
+#define FILES_DECODEC_H
 
 #include <utils/threads.h> 
 #include <utils/Log.h>
@@ -8,12 +8,15 @@
 #include <string>
 #include <map>
 
-#include "VideoBase.h"
-#include "IVideoCallback.h"
+#include "Configure.h"
 
-#include "IReceiveCallback.h"
+#if HEIGHT_VERSION
+#else
+#include <gui/SurfaceTextureClient.h>
+#endif
 
-#include "CodecBase.h"
+
+
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
@@ -30,11 +33,11 @@
 
 using namespace android;
 
-class TestEncoder : public Thread
+class FilesDecodec : public Thread
 {
 	public:
-		TestEncoder();
-		virtual ~TestEncoder();
+		FilesDecodec();
+		virtual ~FilesDecodec();
 		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 		
@@ -45,10 +48,10 @@ class TestEncoder : public Thread
 
 		void GetDecodecSource();
 		
-		class EncodecThread:public Thread 
+		class DecodecThread:public Thread 
 		{
 			public:
-				EncodecThread(TestEncoder *file) :
+				DecodecThread(FilesDecodec *file) :
 							  Thread(false), mFileSource(file) {
 				}
 
@@ -67,9 +70,9 @@ class TestEncoder : public Thread
 				}
 		
 			private:
-				TestEncoder* mFileSource;
+				FilesDecodec* mFileSource;
 		};
-		sp<EncodecThread> mThread;
+		sp<DecodecThread> mThread;
 		
 	protected:
 		bool isFirstFrame();
@@ -88,7 +91,11 @@ class TestEncoder : public Thread
 		char mcharLength[4];
 		char mData[1000000];
 		
-		sp<CodecBase> 	mCodec;
+		sp<JMediaCodec> 	mCodec;
+		JNIEnv*				mEnv;
+		uint8_t*			mBufferPoint[2];
+		jobject 			mBufferInfo;
+		int 				mCount;
 };
 
 #endif

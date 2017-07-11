@@ -6,6 +6,7 @@
 
 CommonThread::CommonThread()
 			:mRunning(false)
+
 {
 }
 

@@ -123,7 +123,7 @@ int JThread::Kill()
 		return ERR_JTHREAD_NOTRUNNING;
 	}
 	//pthread_cancel(threadid);
-	//pthread_kill(threadid,SIGUSR1);
+	pthread_kill(threadid,SIGUSR1);
 	running = false;
 	runningmutex.Unlock();
 	return 0;

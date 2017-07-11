@@ -10,13 +10,6 @@
 #include <string>
 
 
-#include "Configure.h"
-
-#if HEIGHT_VERSION
-#else
-#include <gui/SurfaceTextureClient.h>
-#endif
-
 #include "CodecBase.h"
 
 #include "RtpReceive.h"

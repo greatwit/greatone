@@ -104,7 +104,6 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/Media \
 	$(LOCAL_PATH)/Media/Codec \
 	$(LOCAL_PATH)/Media/Camera \
-	$(LOCAL_PATH)/Media/include \
 	$(LOCAL_PATH)/RtpTrans	\
 	$(LOCAL_PATH)/RtpTrans/rtplib/jrtplib	\
     $(call include-path-for, libhardware)/hardware \

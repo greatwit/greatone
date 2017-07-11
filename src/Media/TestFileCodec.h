@@ -9,19 +9,9 @@
 #include <map>
 
 
-#define HEIGHT_VERSION false
-
-#if HEIGHT_VERSION
-#else
-#include <gui/SurfaceTextureClient.h>
-#endif
-
-#include "VideoBase.h"
 #include "IVideoCallback.h"
-
 #include "IReceiveCallback.h"
 
-#include "media_Utils.h"
 #include "CodecBase.h"
 
 #include "android_runtime/AndroidRuntime.h"

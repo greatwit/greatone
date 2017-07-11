@@ -1,5 +1,5 @@
-#ifndef TEST_ENCODER_H_
-#define TEST_ENCODER_H_
+#ifndef TEST_FILE_CODEC_H
+#define TEST_FILE_CODEC_H
 
 #include <utils/threads.h> 
 #include <utils/Log.h>
@@ -8,11 +8,13 @@
 #include <string>
 #include <map>
 
+
 #include "VideoBase.h"
 #include "IVideoCallback.h"
 
 #include "IReceiveCallback.h"
 
+#include "media_Utils.h"
 #include "CodecBase.h"
 
 #include "android_runtime/AndroidRuntime.h"
@@ -30,11 +32,11 @@
 
 using namespace android;
 
-class TestEncoder : public Thread
+class TestFileCodec : public Thread
 {
 	public:
-		TestEncoder();
-		virtual ~TestEncoder();
+		TestFileCodec();
+		virtual ~TestFileCodec();
 		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 		
@@ -45,10 +47,10 @@ class TestEncoder : public Thread
 
 		void GetDecodecSource();
 		
-		class EncodecThread:public Thread 
+		class DecodecThread:public Thread 
 		{
 			public:
-				EncodecThread(TestEncoder *file) :
+				DecodecThread(TestFileCodec *file) :
 							  Thread(false), mFileSource(file) {
 				}
 
@@ -67,9 +69,9 @@ class TestEncoder : public Thread
 				}
 		
 			private:
-				TestEncoder* mFileSource;
+				TestFileCodec* mFileSource;
 		};
-		sp<EncodecThread> mThread;
+		sp<DecodecThread> mThread;
 		
 	protected:
 		bool isFirstFrame();

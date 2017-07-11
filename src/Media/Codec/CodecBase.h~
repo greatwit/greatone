@@ -21,6 +21,9 @@ struct PersistentSurface;
 class Surface;
 struct JMediaCodec;
 
+status_t ConvertKeyValueArraysToMessage1(
+        JNIEnv *env, jobjectArray keys, jobjectArray values,
+        sp<AMessage> *msg);
 
 struct CodecBase : public RefBase 
 {
