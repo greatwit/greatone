@@ -34,6 +34,14 @@ extern "C"
 											jobject jcrypto,
 											jint flags);
 	JNIEXPORT jboolean JNICALL JNI_API_NAME(StopFileDecoder)(JNIEnv *env, jobject);
+
+
+	JNIEXPORT jboolean JNICALL JNI_API_NAME(StartFileEncoder)(JNIEnv *env, jobject, 
+											jobjectArray keys, jobjectArray values,
+											jobject jsurface,
+											jobject jcrypto,
+											jint flags);
+	JNIEXPORT jboolean JNICALL JNI_API_NAME(StopFileEncoder)(JNIEnv *env, jobject);
 #ifdef __cplusplus
 }
 #endif

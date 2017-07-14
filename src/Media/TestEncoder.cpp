@@ -73,6 +73,13 @@ bool TestEncoder::StartVideo(int deivceid)
 	run("SenderServer", PRIORITY_URGENT_DISPLAY);
 	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
 
+	mpCameraSource = new CameraHardware(); 
+	mpCameraSource->SetPixelFormat(V4L2_PIX_FMT_NV12); //for encoder
+	mpCameraSource->InitCamera(1280, 720, deivceid);
+	mpCameraSource->RegisterCallback(this);
+	mpCameraSource->SetFrameRate(VIDEO_FRAMERATE);
+	mpCameraSource->StartCamera();
+
 	mbRunning = true;
 
 	return true;
@@ -84,6 +91,11 @@ bool TestEncoder::StopVideo()
 		return false;
 
 	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
+
+		mpCameraSource->StopCamera();
+		ALOGW("TAG 1,function %s,line:%d StopVideo 00",__FUNCTION__,__LINE__);
+		mpCameraSource->DeInitCamera();
+		ALOGW("TAG 1,function %s,line:%d StopVideo 000",__FUNCTION__,__LINE__);
 
 	mbRunning = false;
 	requestExit();
@@ -108,8 +120,11 @@ void TestEncoder::GetDecodecSource()
 void TestEncoder::decorder(char*data, int dataLen)
 {
 	ALOGTEST("startCodec------------0");
+}
 
-	
+void TestEncoder::VideoSource(V4L2BUF_t *pBuf)
+{
+	ALOGTEST("VideoSource------------len:%d", pBuf->length);
 }
 
 bool TestEncoder::threadLoop()

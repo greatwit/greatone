@@ -74,8 +74,11 @@ status_t CodecBase::startCodec()
 		for(int i=0; i<miInputArrayLen; i++)
 		{
 			jobject buffer 			= mpEnv->GetObjectArrayElement(inputArray, i);
-			mpInputBufferPoint[i] 	= (int)mpEnv->GetDirectBufferAddress(buffer);
-			ALOGTEST("startCodec------------BufferAddress:%d", mpInputBufferPoint[i]);
+			if(buffer)
+			{
+				mpInputBufferPoint[i] 	= (int)mpEnv->GetDirectBufferAddress(buffer);
+				ALOGTEST("startCodec------------BufferAddress:%d", mpInputBufferPoint[i]);
+			}
 		}
 	}
 
@@ -87,12 +90,17 @@ status_t CodecBase::startCodec()
 		miOutputArrayLen = mpEnv->GetArrayLength(outputArray);
 		ALOGTEST("startCodec------------6 miOutputArrayLen:%d", miOutputArrayLen);
 		mpOutputBufferPoint = new int[miOutputArrayLen];
+
 		for(int i=0; i<miOutputArrayLen; i++)
 		{
 			jobject buffer 			= mpEnv->GetObjectArrayElement(outputArray, i);
-			mpOutputBufferPoint[i] 	= (int)mpEnv->GetDirectBufferAddress(buffer);
-			ALOGTEST("startCodec------------BufferAddress:%d", mpOutputBufferPoint[i]);
+			if(buffer)
+			{
+				mpOutputBufferPoint[i] 	= (int)mpEnv->GetDirectBufferAddress(buffer);
+				ALOGTEST("startCodec------------BufferAddress:%d", mpOutputBufferPoint[i]);
+			}
 		}
+
 	}
 
 	return err;
@@ -129,7 +137,7 @@ status_t CodecBase::addBuffer(char*data, int len)
 	err = mCodec->dequeueInputBuffer(&inputBufferIndex, -1);
 	ALOGTEST("addBuffer------------1 err:%d", err);
 
-	uint8_t* inputChar = (uint8_t*)mpInputBufferPoint[inputBufferIndex];
+	void* inputChar = (void*)mpInputBufferPoint[inputBufferIndex];
 	memcpy(inputChar, data, len);
 	
 	err = mCodec->queueInputBuffer(inputBufferIndex, 0, len, 0 * 1000000 / 20, 0, &errorDetailMsg);

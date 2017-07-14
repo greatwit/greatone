@@ -26,11 +26,14 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include <gui/Surface.h>
+#include "CameraHardware.h" 
+#include "IVideoCallback.h"
+
+#include <gui/Surface.h> 
 
 using namespace android;
 
-class TestEncoder : public Thread
+class TestEncoder : public Thread, public IVideoCallback
 {
 	public:
 		TestEncoder();
@@ -44,6 +47,8 @@ class TestEncoder : public Thread
 		bool StopVideo();
 
 		void GetDecodecSource();
+		
+		void VideoSource(V4L2BUF_t *pBuf);
 		
 		class EncodecThread:public Thread 
 		{
@@ -89,6 +94,7 @@ class TestEncoder : public Thread
 		char mData[1000000];
 		
 		sp<CodecBase> 	mCodec;
+		sp<CameraHardware>			mpCameraSource;
 };
 
 #endif

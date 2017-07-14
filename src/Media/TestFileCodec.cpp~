@@ -122,6 +122,8 @@ void TestFileCodec::GetDecodecSource()
 void TestFileCodec::decorder(char*data, int dataLen)
 {
 	ALOGTEST("startCodec------------0");
+
+	
 }
 
 bool TestFileCodec::threadLoop()

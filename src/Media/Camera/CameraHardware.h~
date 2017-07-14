@@ -2,9 +2,7 @@
 #define CAMERA_HARDWARE_H
 
 
-#include "capture.h"
 #include "videodev2.h"
-
 
 #include "BaseCamera.h"
 

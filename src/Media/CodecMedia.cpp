@@ -24,6 +24,7 @@
 #include "media_Utils.h"
 
 #include "TestFileCodec.h"
+#include "TestEncoder.h"
 //#include "FilesDecodec.h"
 #include "VideoReceiver.h"
 
@@ -211,6 +212,7 @@ void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz)
 static sp<VideoReceiver>	mpReceiveRender ;
 //static sp<FilesDecodec>		mpSenderRender	;
 static sp<TestFileCodec>    mpFileDecoder;
+static sp<TestEncoder>      mpFileEncoder;
 
 
 jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject thiz, 						
@@ -261,7 +263,7 @@ jboolean JNI_API_NAME(StartFileDecoder)(JNIEnv *env, jobject,
 											jobject jcrypto,
 											jint flags)
 {
-		ALOGE("Enter:StartVideoSend----------->1");
+		ALOGE("Enter:StartFileDecoder----------->1");
 	
 	sp<AMessage> format;
 	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
@@ -274,14 +276,14 @@ jboolean JNI_API_NAME(StartFileDecoder)(JNIEnv *env, jobject,
 	}
 	
 	mpFileDecoder = new TestFileCodec();
-	ALOGE("Enter:StartVideoSend----------->2");
+	ALOGE("Enter:StartFileDecoder----------->2");
 	mpFileDecoder->CreateCodec(format, surface, crypto, flags);
-	ALOGE("Enter:StartVideoSend----------->3");
+	ALOGE("Enter:StartFileDecoder----------->3");
 
 
-	ALOGE("Enter:StartVideoSend----------->4");
+	ALOGE("Enter:StartFileDecoder----------->4");
 	mpFileDecoder->StartVideo(0);
-	ALOGE("Enter:StartVideoSend----------->5");
+	ALOGE("Enter:StartFileDecoder----------->5");
 	
 	return true;
 }
@@ -292,6 +294,43 @@ jboolean JNI_API_NAME(StopFileDecoder)(JNIEnv *env, jobject)
 	return mpFileDecoder->DeInit();
 }
 
+
+jboolean JNI_API_NAME(StartFileEncoder)(JNIEnv *env, jobject, 
+											jobjectArray keys, jobjectArray values,
+											jobject jsurface,
+											jobject jcrypto,
+											jint flags)
+{
+		ALOGE("Enter:StartFileEncoder----------->1");
+	
+	sp<AMessage> format;
+	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
+
+	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+
+	sp<ICrypto> crypto;
+	if (jcrypto != NULL) {
+	//crypto = JCrypto::GetCrypto(env, jcrypto);
+	}
+	
+	mpFileEncoder = new TestEncoder();
+	ALOGE("Enter:StartFileEncoder----------->2");
+	mpFileEncoder->CreateCodec(format, surface, crypto, flags);
+	ALOGE("Enter:StartFileEncoder----------->3");
+
+
+	ALOGE("Enter:StartFileEncoder----------->4");
+	mpFileEncoder->StartVideo(0);
+	ALOGE("Enter:StartFileEncoder----------->5");
+	
+	return true;
+}
+
+jboolean JNI_API_NAME(StopFileEncoder)(JNIEnv *env, jobject)
+{
+	mpFileEncoder->StopVideo();
+	return mpFileEncoder->DeInit();
+}
 
 jboolean JNI_API_NAME(StartVideoRecv)(JNIEnv *env, jobject thiz, jshort localRecvPort)
 {
@@ -315,7 +354,7 @@ jboolean JNI_API_NAME(StopVideoRecv)(JNIEnv *env, jobject)
 
 static JNINativeMethod gMethods[] = 
 {
-	
+	/*
     	{ "native_configure",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
       	"Landroid/media/MediaCrypto;I)V",
@@ -329,7 +368,20 @@ static JNINativeMethod gMethods[] =
 	(void *)JNI_API_NAME(StartVideoSend) },
 	
 	{ "StopVideoSend", "()Z", (void *)JNI_API_NAME(StopVideoSend) },
+	*/
+    	{ "StartFileDecoder",
+      	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
+      	"Landroid/media/MediaCrypto;I)Z",
+      	(void *)JNI_API_NAME(StartFileDecoder) },
 
+	{ "StopFileDecoder", "()Z", (void *)JNI_API_NAME(StopFileDecoder) },
+
+    	{ "StartFileEncoder",
+      	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
+      	"Landroid/media/MediaCrypto;I)Z",
+      	(void *)JNI_API_NAME(StartFileEncoder) },
+
+	{ "StopFileEncoder", "()Z", (void *)JNI_API_NAME(StopFileEncoder) },
 };
 
 int jniRegisterNativeMethods1(JNIEnv* env,
