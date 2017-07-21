@@ -35,7 +35,6 @@
  */
 
 #ifndef RTPADDRESS_H
-
 #define RTPADDRESS_H
 
 #include "rtpconfig.h"

@@ -46,7 +46,7 @@ struct CodecBase : public Thread
 	status_t stopCodec();
 	
 	status_t addBuffer(char*data, int len);
-	status_t getCodecBuffer();
+	status_t getCodecBuffer(struct CodecBuffer &buffers);
 
 	
     protected:

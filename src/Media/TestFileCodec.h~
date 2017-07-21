@@ -1,5 +1,5 @@
-#ifndef TEST_ENCODER_H_
-#define TEST_ENCODER_H_
+#ifndef TEST_FILE_CODEC_H
+#define TEST_FILE_CODEC_H
 
 #include <utils/threads.h> 
 #include <utils/Log.h>
@@ -7,6 +7,10 @@
 #include "RtpSender.h"
 #include <string>
 #include <map>
+
+
+#include "IVideoCallback.h"
+#include "IReceiveCallback.h"
 
 #include "CodecBase.h"
 
@@ -21,18 +25,15 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include "CameraHardware.h" 
-#include "IVideoCallback.h"
-
-#include <gui/Surface.h> 
+#include <gui/Surface.h>
 
 using namespace android;
 
-class TestEncoder : public ICodecCallback
+class TestFileCodec : public Thread, public ICodecCallback
 {
 	public:
-		TestEncoder();
-		virtual ~TestEncoder();
+		TestFileCodec();
+		virtual ~TestFileCodec();
 		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 		
@@ -41,10 +42,41 @@ class TestEncoder : public ICodecCallback
 		bool StartVideo(int deivceid);
 		bool StopVideo();
 
-		void AddDecodecSource(char *data, int len);
+		void GetDecodecSource();
 		void onCodecBuffer(struct CodecBuffer& buff);
 		
+		class DecodecThread:public Thread 
+		{
+			public:
+				DecodecThread(TestFileCodec *file) :
+							  Thread(false), mFileSource(file) {
+				}
+
+				void startThread() {
+					run("FileProcessThread", ANDROID_PRIORITY_URGENT_AUDIO);
+				}
+				
+				void stopThread() {
+					requestExit();
+				}
+				virtual bool threadLoop() 
+				{
+					// loop until we need to quit
+					mFileSource->GetDecodecSource();
+					return true;
+				}
+		
+			private:
+				TestFileCodec* mFileSource;
+		};
+		sp<DecodecThread> mThread;
+		
 	protected:
+		bool isFirstFrame();
+		void setFirstFrame(bool bFirs);
+
+		void decorder(char*data, int dataLen);
+		virtual bool threadLoop();
 
 
 	private:

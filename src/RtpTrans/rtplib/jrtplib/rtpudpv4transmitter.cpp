@@ -210,7 +210,7 @@ int RTPUDPv4Transmitter::Create(size_t maximumpacketsize,const RTPTransmissionPa
 	}
 
 	// set socket buffer sizes
-	
+	int OptVal;
 	size = params->GetRTPReceiveBuffer();
 	if (setsockopt(rtpsock,SOL_SOCKET,SO_RCVBUF,(const char *)&size,sizeof(int)) != 0)
 	{
@@ -227,6 +227,7 @@ int RTPUDPv4Transmitter::Create(size_t maximumpacketsize,const RTPTransmissionPa
 		MAINMUTEX_UNLOCK
 		return ERR_RTP_UDPV4TRANS_CANTSETRTPTRANSMITBUF;
 	}
+	//ioctl(rtpsock, (int)FIONBIO, (int)&OptVal);
 	size = params->GetRTCPReceiveBuffer();
 	if (setsockopt(rtcpsock,SOL_SOCKET,SO_RCVBUF,(const char *)&size,sizeof(int)) != 0)
 	{
@@ -243,7 +244,7 @@ int RTPUDPv4Transmitter::Create(size_t maximumpacketsize,const RTPTransmissionPa
 		MAINMUTEX_UNLOCK
 		return ERR_RTP_UDPV4TRANS_CANTSETRTCPTRANSMITBUF;
 	}
-	
+	//ioctl(rtcpsock, (int)FIONBIO, (int)&OptVal);
 	// bind sockets
 
 	bindIP = params->GetBindIP();

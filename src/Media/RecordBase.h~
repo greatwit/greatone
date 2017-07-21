@@ -13,8 +13,8 @@
 class RecordBase
 {
 	public:	
-		RecordBase():mMediaRecording(false),mbAudioRecording(false){}
-		virtual ~RecordBase(){}
+		RecordBase();
+		virtual ~RecordBase();
 
 		virtual bool Init() = 0;
 		virtual bool DeInit() = 0;

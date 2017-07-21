@@ -1,5 +1,5 @@
-#ifndef TEST_ENCODER_H_
-#define TEST_ENCODER_H_
+#ifndef CODEC_SENDER_H_
+#define CODEC_SENDER_H_
 
 #include <utils/threads.h> 
 #include <utils/Log.h>
@@ -28,16 +28,17 @@
 
 using namespace android;
 
-class TestEncoder : public ICodecCallback
+class CodecSender : public ICodecCallback
 {
 	public:
-		TestEncoder();
-		virtual ~TestEncoder();
+		CodecSender();
+		virtual ~CodecSender();
 		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
-		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
+		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort);
 		
 		bool DeInit();
 		
+bool ConnectDest(std::string ip, short port);
 		bool StartVideo(int deivceid);
 		bool StopVideo();
 
@@ -50,13 +51,9 @@ class TestEncoder : public ICodecCallback
 	private:
 		bool				mFirstFrame;
 		bool				mbRunning;
-
-		FILE 				*mFile;
-		
-		char mcharLength[4];
-		char mData[1000000];
 		
 		sp<CodecBase> 	mCodec;
+		RtpSender					*mpSender;
 };
 
 #endif

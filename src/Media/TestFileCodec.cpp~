@@ -110,20 +110,20 @@ bool TestFileCodec::StopVideo()
 	return true;
 }
 
+void TestFileCodec::onCodecBuffer(struct CodecBuffer& buff)
+{
+}
+
 void TestFileCodec::GetDecodecSource()
 {
 	usleep(50*1000);
-	
 	mCodec->getCodecBuffer();
 	ALOGTEST("GetDecodecSource------------8");
-	
 }
 
 void TestFileCodec::decorder(char*data, int dataLen)
 {
 	ALOGTEST("startCodec------------0");
-
-	
 }
 
 bool TestFileCodec::threadLoop()

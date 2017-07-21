@@ -489,7 +489,7 @@ static JNINativeMethod gMethods[] =
 
 	{ "StartCodecSender",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
-      	"Landroid/media/MediaCrypto;[Ljava/lang/String;SSI)Z",
+      	"Landroid/media/MediaCrypto;I[Ljava/lang/String;SS)Z",
       	(void *)JNI_API_NAME(StartCodecSender) },
 
 	{ "StopCodecSender", "()Z", (void *)JNI_API_NAME(StopCodecSender) },

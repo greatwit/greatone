@@ -1,10 +1,8 @@
 
-#include "TestEncoder.h"
-#include "RtpReceive.h"
-
+#include "CodecSender.h"
 
 #include "ComDefine.h"
-#define TAG "TestEncoder"
+#define TAG "CodecSender"
 
 
 #define ALOGTEST(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
@@ -13,18 +11,18 @@
 
 
 
-TestEncoder::TestEncoder()
+CodecSender::CodecSender()
 			:mbRunning(false)
 {
 	ALOGV("SenderServer::SenderServer() construct.");
 }
 
-TestEncoder::~TestEncoder()
+CodecSender::~CodecSender()
 {
 	ALOGV("SenderServer, Destructor");
 }
 
-bool TestEncoder::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
+bool CodecSender::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
 {
 	mcharLength[4] = {0};
 	mData[1000000] = {0};
@@ -34,7 +32,7 @@ bool TestEncoder::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &for
 	return true;
 }
 
-bool TestEncoder::CreateCodec( const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
+bool CodecSender::CreateCodec( const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
 {
 	mcharLength[4] = {0};
 	mData[1000000] = {0};
@@ -47,19 +45,15 @@ bool TestEncoder::CreateCodec( const sp<AMessage> &format, const sp<Surface> &su
 	return true;
 }
 
-bool TestEncoder::DeInit()
+bool CodecSender::DeInit()
 {	
-	if(mbRunning)
-		StopVideo();
+	StopVideo();
 	
-	//fclose(mFile);
-	
-
 	return true;
 }
 
 
-bool TestEncoder::StartVideo(int deivceid)
+bool CodecSender::StartVideo(int deivceid)
 {
 
 	mCodec->startCodec();
@@ -70,7 +64,7 @@ bool TestEncoder::StartVideo(int deivceid)
 	return true;
 }
 
-bool TestEncoder::StopVideo()
+bool CodecSender::StopVideo()
 {
 
 	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
@@ -82,12 +76,12 @@ bool TestEncoder::StopVideo()
 	return true;
 }
 
-void TestEncoder::onCodecBuffer(struct CodecBuffer& buff)
+void CodecSender::onCodecBuffer(struct CodecBuffer& buff)
 {
 	ALOGTEST("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
 }
 
-void TestEncoder::AddDecodecSource(char *data, int len)
+void CodecSender::AddDecodecSource(char *data, int len)
 {
 	mCodec->addBuffer(data, len);
 }

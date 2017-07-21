@@ -207,7 +207,6 @@ status_t CodecBase::getCodecBuffer()
 bool CodecBase::threadLoop()
 {
 	getCodecBuffer();
-	usleep(50*1000);
 	return true;
 }
 

@@ -1,12 +1,16 @@
-#ifndef TEST_ENCODER_H_
-#define TEST_ENCODER_H_
+#ifndef CODEC_RECEIVER_H
+#define CODEC_RECEIVER_H
 
 #include <utils/threads.h> 
 #include <utils/Log.h>
 
-#include "RtpSender.h"
+#include "RtpReceive.h"
 #include <string>
 #include <map>
+
+
+#include "IVideoCallback.h"
+#include "IReceiveCallback.h"
 
 #include "CodecBase.h"
 
@@ -21,42 +25,39 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include "CameraHardware.h" 
-#include "IVideoCallback.h"
-
-#include <gui/Surface.h> 
+#include <gui/Surface.h>
 
 using namespace android;
 
-class TestEncoder : public ICodecCallback
+class CodecReceiver : public IReceiveCallback
 {
 	public:
-		TestEncoder();
-		virtual ~TestEncoder();
+		CodecReceiver();
+		virtual ~CodecReceiver();
 		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
-		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
+		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short recvPort);
 		
 		bool DeInit();
 		
 		bool StartVideo(int deivceid);
 		bool StopVideo();
 
-		void AddDecodecSource(char *data, int len);
-		void onCodecBuffer(struct CodecBuffer& buff);
+		void ReceiveSource(int64_t timeStamp, char*mimeType, void* buffer, int dataLen);
 		
 	protected:
+		bool isFirstFrame();
+		void setFirstFrame(bool bFirs);
+
+		void decorder(char*data, int dataLen);
 
 
 	private:
 		bool				mFirstFrame;
 		bool				mbRunning;
 
-		FILE 				*mFile;
 		
-		char mcharLength[4];
-		char mData[1000000];
-		
-		sp<CodecBase> 	mCodec;
+		sp<CodecBase> 			mCodec;
+		RtpReceive			*mpReceive;
 };
 
 #endif

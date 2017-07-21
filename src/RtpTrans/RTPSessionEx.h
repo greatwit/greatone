@@ -13,25 +13,22 @@
 using namespace std;
 using namespace jrtplib;
 
-namespace android 
+class RTPSessionEx : public RTPSession
 {
-	class RTPSessionEx : public RTPSession
-	{
-		public:
-			RTPSessionEx();
-			~RTPSessionEx();
-			string& getSourceIp();
-			bool IsSameAddress(const RTPAddress *addr) const;
-			bool IsFromSameHost(const RTPAddress *addr) const;
+	public:
+		RTPSessionEx();
+		~RTPSessionEx();
+		string& getSourceIp();
+		bool IsSameAddress(const RTPAddress *addr) const;
+		bool IsFromSameHost(const RTPAddress *addr) const;
 
-		protected:
-			void OnNewSource(RTPSourceData *dat);
-			void OnBYEPacket(RTPSourceData *dat);
-			void OnRemoveSource(RTPSourceData *dat);
+	protected:
+		void OnNewSource(RTPSourceData *dat);
+		void OnBYEPacket(RTPSourceData *dat);
+		void OnRemoveSource(RTPSourceData *dat);
 
-		private:
-			string	mSourceIp;
-	};
+	private:
+		string	mSourceIp;
 };
 
 #endif

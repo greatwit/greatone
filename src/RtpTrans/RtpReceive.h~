@@ -24,7 +24,7 @@
 #define TAG "RtpReceive"
 #include "ComDefine.h"
 
-using namespace android;
+
 using namespace jrtplib;
 
 class RtpReceive : public CommonThread

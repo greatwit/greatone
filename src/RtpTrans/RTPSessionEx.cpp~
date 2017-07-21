@@ -1,5 +1,6 @@
 #include "RTPSessionEx.h"
 
+using namespace android;
 
 RTPSessionEx::RTPSessionEx()
 		:RTPSession()

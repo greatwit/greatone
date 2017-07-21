@@ -8,6 +8,9 @@
 #include <string>
 #include <map>
 
+
+#include "IReceiveCallback.h"
+
 #include "CodecBase.h"
 
 #include "android_runtime/AndroidRuntime.h"
