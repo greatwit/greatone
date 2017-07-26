@@ -5,10 +5,6 @@
 #define TAG "CodecSender"
 
 
-#define ALOGTEST(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
-#define ALOGE(...)	__android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
-
-
 
 
 CodecSender::CodecSender()
@@ -100,7 +96,7 @@ bool CodecSender::ConnectDest(std::string ip, short port)
 
 void CodecSender::onCodecBuffer(struct CodecBuffer& buff)
 {
-	ALOGTEST("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
+	ALOGW("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
 	mpSender->sendBuffer(buff.buf, buff.size, MIME_H264, MIME_H264_LEN, 0);
 }
 

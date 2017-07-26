@@ -146,22 +146,10 @@ status_t JMediaCodec::dequeueOutputBuffer(
         return err;
     }
 
-    jclass clazz = env->FindClass("android/media/MediaCodec$BufferInfo");
+    //jclass clazz = env->FindClass("android/media/MediaCodec$BufferInfo");
 
-    jmethodID method = env->GetMethodID(clazz, "set", "(IIJI)V");
-    env->CallVoidMethod(bufferInfo, method, offset, size, timeUs, flags);
-
-    return OK;
-}
-
-status_t JMediaCodec::dequeueOutputBuffer( JNIEnv *env, size_t *index, size_t &offset, size_t &size, int64_t &timeUs, uint32_t &flags, int64_t timeoutUs)
-{
-    status_t err = mCodec->dequeueOutputBuffer( index, &offset, &size, &timeUs, &flags, timeoutUs);
-
-    if (err != OK) 
-    {
-        return err;
-    }
+    //jmethodID method = env->GetMethodID(clazz, "set", "(IIJI)V");
+    //env->CallVoidMethod(bufferInfo, method, offset, size, timeUs, flags);
 
     return OK;
 }

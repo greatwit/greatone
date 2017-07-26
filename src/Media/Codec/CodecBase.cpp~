@@ -47,7 +47,10 @@ status_t CodecBase::CreateCodec(const sp<AMessage> &format, const sp<Surface> &s
 		err = mCodec->configure(format, bufferProducer, crypto, flags);
 		ALOGTEST("function %s,line:%d configure...2 err:%d", __FUNCTION__, __LINE__, err);
 	#else
-		err = mCodec->configure(format, surface->getSurfaceTexture(), crypto, flags);
+		sp<SurfaceTextureClient> textClient;
+		if(surface!=NULL)
+			textClient = surface->getSurfaceTexture();
+		err = mCodec->configure(format, textClient, crypto, flags);
 		ALOGTEST("function %s,line:%d configure...2 err:%d", __FUNCTION__, __LINE__, err);
 	#endif
 
@@ -207,6 +210,7 @@ status_t CodecBase::getCodecBuffer()
 bool CodecBase::threadLoop()
 {
 	getCodecBuffer();
+	usleep(50*1000);
 	return true;
 }
 

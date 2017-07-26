@@ -50,6 +50,7 @@ extern "C"
 											jobjectArray keys, jobjectArray values,
 											jobject jsurface, jobject jcrypto, jstring destip, 
 											jshort destport, jshort localport, jint flags);
+	JNIEXPORT jboolean JNICALL JNI_API_NAME(CodecSenderData)(JNIEnv *env, jobject, jbyteArray byteData, jint len);
 	JNIEXPORT jboolean JNICALL JNI_API_NAME(StopCodecSender)(JNIEnv *env, jobject);
 
 

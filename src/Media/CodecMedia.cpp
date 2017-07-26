@@ -396,6 +396,14 @@ jboolean JNI_API_NAME(StartCodecSender)(JNIEnv *env, jobject,
         return true;
 }
 
+jboolean JNI_API_NAME(CodecSenderData)(JNIEnv *env, jobject, jbyteArray byteData, jint len)
+{
+	jbyte* cameraFrame = env->GetByteArrayElements(byteData, NULL);
+	mpCodecSend->AddDecodecSource(reinterpret_cast<char*>(cameraFrame), len);
+	env->ReleaseByteArrayElements(byteData, cameraFrame, JNI_ABORT);
+	return true;
+}
+
 jboolean JNI_API_NAME(StopCodecSender)(JNIEnv *env, jobject)
 {
 	mpCodecSend->StopVideo();
@@ -489,7 +497,7 @@ static JNINativeMethod gMethods[] =
 
 	{ "StartCodecSender",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
-      	"Landroid/media/MediaCrypto;[Ljava/lang/String;SSI)Z",
+      	"Landroid/media/MediaCrypto;Ljava/lang/String;SSI)Z",
       	(void *)JNI_API_NAME(StartCodecSender) },
 
 	{ "StopCodecSender", "()Z", (void *)JNI_API_NAME(StopCodecSender) },

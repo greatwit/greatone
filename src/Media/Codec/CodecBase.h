@@ -37,14 +37,15 @@ struct JMediaCodec;
 
 struct CodecBase : public Thread
 {
-    CodecBase( const char *name, bool nameIsType, bool encoder);
+     public:
+    	CodecBase( const char *name, bool nameIsType, bool encoder);
 
-    status_t CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
+    	status_t CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 	
 	void  	 registerBufferCall(ICodecCallback *call);
 	status_t startCodec();
 	status_t stopCodec();
-	
+
 	status_t addBuffer(char*data, int len);
 	status_t getCodecBuffer();
 
