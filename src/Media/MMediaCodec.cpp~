@@ -1,0 +1,200 @@
+
+#define LOG_TAG "MediaCodec-JNI"
+#include <utils/Log.h>
+
+#include "android_media_MediaCodec.h"
+
+#include "android_media_Utils.h"
+#include "android_runtime/AndroidRuntime.h"
+#include "android_runtime/android_view_Surface.h"
+#include "jni.h"
+#include "JNIHelp.h"
+
+#include <cutils/compiler.h>
+
+#include <gui/Surface.h>
+
+#include <media/ICrypto.h>
+#include <media/stagefright/MediaCodec.h>
+#include <media/stagefright/foundation/ABuffer.h>
+#include <media/stagefright/foundation/ADebug.h>
+#include <media/stagefright/foundation/ALooper.h>
+#include <media/stagefright/foundation/AMessage.h>
+#include <media/stagefright/foundation/AString.h>
+#include <media/stagefright/MediaErrors.h>
+
+#include <nativehelper/ScopedLocalRef.h>
+
+
+#include "MMediaCodec.h"
+
+
+namespace android 
+{
+
+MMediaCodec::MMediaCodec(
+        JNIEnv *env, jobject thiz,
+        const char *name, bool nameIsType, bool encoder)
+    : mClass(NULL),
+      mObject(NULL) 
+{
+    jclass clazz = env->GetObjectClass(thiz);
+    CHECK(clazz != NULL);
+
+    mClass = (jclass)env->NewGlobalRef(clazz);
+    mObject = env->NewWeakGlobalRef(thiz);
+
+    //cacheJavaObjects(env);
+
+    mLooper = new ALooper;
+    mLooper->setName("MediaCodec_looper");
+
+    mLooper->start(
+            false,      // runOnCallingThread
+            true,       // canCallJava
+            PRIORITY_FOREGROUND);
+
+    if (nameIsType) 
+    {
+        mCodec = MediaCodec::CreateByType(mLooper, name, encoder, &mInitStatus);
+    } else 
+    {
+        mCodec = MediaCodec::CreateByComponentName(mLooper, name, &mInitStatus);
+    }
+    CHECK((mCodec != NULL) != (mInitStatus != OK));
+}
+
+MMediaCodec::~MMediaCodec() 
+{
+    if (mCodec != NULL || mLooper != NULL) 
+    {
+        /* MediaCodec and looper should have been released explicitly already
+         * in setMediaCodec() (see comments in setMediaCodec()).
+         *
+         * Otherwise JMediaCodec::~JMediaCodec() might be called from within the
+         * message handler, doing release() there risks deadlock as MediaCodec::
+         * release() post synchronous message to the same looper.
+         *
+         * Print a warning and try to proceed with releasing.
+         */
+        ALOGW("try to release MediaCodec from JMediaCodec::~JMediaCodec()...");
+        release();
+        ALOGW("done releasing MediaCodec from JMediaCodec::~JMediaCodec().");
+    }
+
+    JNIEnv *env = AndroidRuntime::getJNIEnv();
+
+    env->DeleteWeakGlobalRef(mObject);
+    mObject = NULL;
+    env->DeleteGlobalRef(mClass);
+    mClass = NULL;
+    //deleteJavaObjects(env);
+}
+
+status_t MMediaCodec::configure(
+        const sp<AMessage> &format,
+        const sp<IGraphicBufferProducer> &bufferProducer,
+        const sp<ICrypto> &crypto,
+        int flags) 
+{
+    sp<Surface> client;
+    if (bufferProducer != NULL) 
+    {
+        mSurfaceTextureClient =
+            new Surface(bufferProducer, true /* controlledByApp */);
+    } 
+    else 
+    {
+        mSurfaceTextureClient.clear();
+    }
+
+    return mCodec->configure(format, mSurfaceTextureClient, crypto, flags);
+}
+
+status_t MMediaCodec::start() 
+{
+    return mCodec->start();
+}
+
+status_t MMediaCodec::stop() 
+{
+    mSurfaceTextureClient.clear();
+
+    return mCodec->stop();
+}
+
+status_t MMediaCodec::flush() 
+{
+    return mCodec->flush();
+}
+
+void MMediaCodec::release() 
+{
+    if (mCodec != NULL) 
+    {
+        mCodec->release();
+        mCodec.clear();
+        mInitStatus = NO_INIT;
+    }
+
+    if (mLooper != NULL) 
+    {
+        mLooper->unregisterHandler(id());
+        mLooper->stop();
+        mLooper.clear();
+    }
+}
+
+status_t MMediaCodec::queueInputBuffer(
+        size_t index,
+        size_t offset, size_t size, int64_t timeUs, uint32_t flags,
+        AString *errorDetailMsg) 
+{
+    return mCodec->queueInputBuffer(
+            index, offset, size, timeUs, flags, errorDetailMsg);
+}
+
+status_t MMediaCodec::dequeueInputBuffer(size_t *index, int64_t timeoutUs) 
+{
+    return mCodec->dequeueInputBuffer(index, timeoutUs);
+}
+
+status_t JMediaCodec::dequeueOutputBuffer(
+        JNIEnv *env, jobject bufferInfo, size_t *index, int64_t timeoutUs) 
+{
+    size_t size, offset;
+    int64_t timeUs;
+    uint32_t flags;
+    status_t err = mCodec->dequeueOutputBuffer(
+            index, &offset, &size, &timeUs, &flags, timeoutUs);
+
+    if (err != OK) 
+    {
+        return err;
+    }
+
+    ScopedLocalRef<jclass> clazz(
+            env, env->FindClass("android/media/MediaCodec$BufferInfo"));
+
+    jmethodID method = env->GetMethodID(clazz.get(), "set", "(IIJI)V");
+    env->CallVoidMethod(bufferInfo, method, (jint)offset, (jint)size, timeUs, flags);
+
+    return OK;
+}
+
+status_t MMediaCodec::releaseOutputBuffer(
+        size_t index, bool render, bool updatePTS, int64_t timestampNs) 
+{
+    if (updatePTS) 
+    {
+        return mCodec->renderOutputBufferAndRelease(index, timestampNs);
+    }
+    return render
+        ? mCodec->renderOutputBufferAndRelease(index)
+        : mCodec->releaseOutputBuffer(index);
+}
+
+};
+
+
+

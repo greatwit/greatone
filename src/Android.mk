@@ -1,5 +1,5 @@
 LOCAL_PATH:= $(call my-dir)
-CODEC_PATH:= $(LOCAL_PATH)/Media/Codec/base6
+CODEC_PATH:= $(LOCAL_PATH)/Media/Codec/base5
 
 ##################################################
 ###                  codec lib                 ###
@@ -111,7 +111,9 @@ LOCAL_C_INCLUDES += external/stlport/stlport bionic
 LOCAL_CFLAGS +=
 
 LOCAL_SHARED_LIBRARIES += libCodecBase
-#LOCAL_SHARED_LIBRARIES += libstlport
+LOCAL_SHARED_LIBRARIES += libstlport
+
+
 
 LOCAL_MODULE:= libgreat_media
 
