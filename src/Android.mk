@@ -8,7 +8,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
-	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Codec/base6/*.c*)) \
+	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Codec/base4/*.c*)) \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Codec/*.c*))
 
 #JCrypto rely libbinder libmedia
@@ -38,7 +38,7 @@ LOCAL_C_INCLUDES += \
     frameworks/av/media/mtp \
     frameworks/native/include/media/openmax \
 	$(LOCAL_PATH)/Media/Codec \
-	$(LOCAL_PATH)/Media/Codec/base6 \
+	$(LOCAL_PATH)/Media/Codec/base4 \
     $(call include-path-for, libhardware)/hardware \
     system/media/camera/include \
     $(PV_INCLUDES) \
@@ -118,8 +118,8 @@ LOCAL_C_INCLUDES += external/stlport/stlport bionic
 LOCAL_CFLAGS +=
 #LOCAL_LDLIBS := -lpthread
 
-LOCAL_SHARED_LIBRARIES +=  libCodecBase
-
+LOCAL_SHARED_LIBRARIES += libCodecBase
+LOCAL_SHARED_LIBRARIES += libstlport
 
 LOCAL_MODULE:= libgreat_media
 

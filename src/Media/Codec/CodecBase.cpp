@@ -47,10 +47,10 @@ status_t CodecBase::CreateCodec(const sp<AMessage> &format, const sp<Surface> &s
 		err = mCodec->configure(format, bufferProducer, crypto, flags);
 		ALOGTEST("function %s,line:%d configure...2 err:%d", __FUNCTION__, __LINE__, err);
 	#else
-		sp<SurfaceTextureClient> textClient;
+		sp<ISurfaceTexture> surfaceTexture;
 		if(surface!=NULL)
-			textClient = surface->getSurfaceTexture();
-		err = mCodec->configure(format, textClient, crypto, flags);
+			surfaceTexture = surface->getSurfaceTexture();
+		err = mCodec->configure(format, surfaceTexture, crypto, flags);
 		ALOGTEST("function %s,line:%d configure...2 err:%d", __FUNCTION__, __LINE__, err);
 	#endif
 
