@@ -109,6 +109,7 @@ LOCAL_C_INCLUDES += \
 LOCAL_C_INCLUDES += external/stlport/stlport bionic
 
 LOCAL_CFLAGS +=
+#LOCAL_LDLIBS := -lpthread
 
 LOCAL_SHARED_LIBRARIES += libCodecBase
 #LOCAL_SHARED_LIBRARIES += libstlport
