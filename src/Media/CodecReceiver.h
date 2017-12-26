@@ -12,7 +12,7 @@
 #include "IVideoCallback.h"
 #include "IReceiveCallback.h"
 
-#include "CodecBase.h"
+#include "Common.h"
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
@@ -56,7 +56,7 @@ class CodecReceiver : public IReceiveCallback
 		bool				mbRunning;
 
 		
-		sp<CodecBase> 			mCodec;
+		//sp<CodecBase> 			mCodec;
 		RtpReceive			*mpReceive;
 };
 

@@ -35,9 +35,9 @@ bool CodecSender::CreateCodec( const sp<AMessage> &format, const sp<Surface> &su
 		return false;
 	}
 
-	mCodec = new CodecBase("video/avc", true, true);
-	mCodec->CreateCodec(format, surface, crypto, flags);
-	mCodec->registerBufferCall(this);
+	//mCodec = new CodecBase("video/avc", true, true);
+	//mCodec->CreateCodec(format, surface, crypto, flags);
+	//mCodec->registerBufferCall(this);
 	
 	return true;
 }
@@ -45,7 +45,7 @@ bool CodecSender::CreateCodec( const sp<AMessage> &format, const sp<Surface> &su
 bool CodecSender::DeInit()
 {	
 	StopVideo();
-	mCodec = NULL;
+	//mCodec = NULL;
 	
 	mpSender->deinitSession();
 	delete mpSender;
@@ -58,19 +58,19 @@ bool CodecSender::DeInit()
 bool CodecSender::StartVideo(int deivceid)
 {
 
-	mCodec->startCodec();
+	//mCodec->startCodec();
 
 	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
 
 
-	return true;
+	return true; 
 }
 
 bool CodecSender::StopVideo()
 {
 	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
-	mCodec->stopCodec();
+	//mCodec->stopCodec();
 	
 	VIDEOLOGD("TAG 1,function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
@@ -102,7 +102,7 @@ void CodecSender::onCodecBuffer(struct CodecBuffer& buff)
 
 void CodecSender::AddDecodecSource(char *data, int len)
 {
-	mCodec->addBuffer(data, len);
+	//mCodec->addBuffer(data, len);
 }
 
 

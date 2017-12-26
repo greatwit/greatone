@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 
-#include "CodecBase.h"
+#include "Common.h"
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
@@ -52,7 +52,7 @@ class CodecSender : public ICodecCallback
 		bool				mFirstFrame;
 		bool				mbRunning;
 		
-		sp<CodecBase> 	mCodec;
+		//sp<CodecBase> 	mCodec;
 		RtpSender					*mpSender;
 };
 

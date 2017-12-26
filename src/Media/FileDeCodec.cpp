@@ -1,17 +1,18 @@
 
-#include "TestFileCodec.h"
+#include "FileDeCodec.h"
 #include "RtpReceive.h"
 
+#include "CodecApi.h"
 
 #include "ComDefine.h"
-#define TAG "TestFileCodec"
+#define TAG "FileDeCodec"
 
 
 #define ALOGTEST(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
 #define ALOGE(...)		__android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
 
 
-char *gFilePath1 = "/sdcard/camera.h264";
+//char *gFilePath1 = "/sdcard/camera.h264";
 
 int charsToInt1(char* src, int offset) 
 {  
@@ -24,70 +25,61 @@ int charsToInt1(char* src, int offset)
 } 
 
 
-TestFileCodec::TestFileCodec()
+FileDeCodec::FileDeCodec()
 			:mbRunning(false)
 			,mFile(NULL)
 {
-	ALOGV("SenderServer::SenderServer() construct.");
+	ALOGV("FileDeCodec::FileDeCodec() construct.");
 }
 
-TestFileCodec::~TestFileCodec()
+FileDeCodec::~FileDeCodec()
 {
-	ALOGV("SenderServer, Destructor");
+	ALOGV("FileDeCodec, Destructor");
 }
 
-bool TestFileCodec::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
+
+bool FileDeCodec::CreateCodec( const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, char*filename)
 {
-	mFile = fopen(gFilePath1, "rb");
+	mFile = fopen(filename, "rb");
 	mcharLength[4] = {0};
 	mData[1000000] = {0};
 	
-
-	return true;
-}
-
-bool TestFileCodec::CreateCodec( const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
-{
-	mFile = fopen(gFilePath1, "rb");
-	mcharLength[4] = {0};
-	mData[1000000] = {0};
-	
-	mCodec = new CodecBase("video/avc", true, false);
-	mCodec->CreateCodec(format, surface, crypto, flags);
+	//mCodec = new CodecBase("video/avc", true, false);
+	//mCodec->CreateCodec(format, surface, crypto, flags);
+	CodecBaseLib::getInstance()->CodecCreate(format, surface, crypto, flags, false);
 	
 	return true;
 }
 
-bool TestFileCodec::DeInit()
+bool FileDeCodec::DeInit()
 {	
 	if(mbRunning)
 		StopVideo();
 	
 	fclose(mFile);
 	
-
-	
 	return true;
 }
 
 
-bool TestFileCodec::StartVideo(int deivceid)
+bool FileDeCodec::StartVideo(int deivceid)
 {
 	if(mbRunning)
 		return false;
 
-	mCodec->startCodec();
+	//mCodec->startCodec();
+	CodecBaseLib::getInstance()->StartCodec();
 
 	
 	run("SenderServer", PRIORITY_URGENT_DISPLAY);
 	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
 
-	mbRunning = true;
+	mbRunning = true;  
 
 	return true;
 }
 
-bool TestFileCodec::StopVideo()
+bool FileDeCodec::StopVideo()
 {
 	if(false==mbRunning)
 		return false;
@@ -97,19 +89,20 @@ bool TestFileCodec::StopVideo()
 	mbRunning = false;
 	requestExit();
 
-	mCodec->stopCodec();
+	//mCodec->stopCodec();
+	CodecBaseLib::getInstance()->StopCodec();
 	
 	VIDEOLOGD("TAG 1,function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
 	return true;
 }
 
-void TestFileCodec::onCodecBuffer(struct CodecBuffer& buff)
+void FileDeCodec::onCodecBuffer(struct CodecBuffer& buff)
 {
 }
 
 
-bool TestFileCodec::threadLoop()
+bool FileDeCodec::threadLoop()
 {
 	if(!mbRunning)
 		return true;
@@ -124,8 +117,8 @@ bool TestFileCodec::threadLoop()
 		
 		VIDEOLOGD("startCodec------------3 res:%d dataLen:%d", res, dataLen);
 		
-		//decorder(mData, dataLen);
-		mCodec->addBuffer(mData, dataLen);
+		CodecBaseLib::getInstance()->AddBuffer(mData, dataLen);
+		//mCodec->addBuffer(mData, dataLen);
 		usleep(50*1000);
 	}
 

@@ -23,18 +23,20 @@
 
 #include "media_Utils.h"
 
-#include "TestFileCodec.h"
-#include "TestEncoder.h"
+#include "FileDeCodec.h"
+#include "FileEnCodec.h"
 
 #include "CodecReceiver.h"
 #include "CodecSender.h"
 
 
+#include "CodecApi.h"
+#include "Common.h"
+
+
 #include "CodecMedia.h"
 #define TAG "CodecMedia"
 
-
-char *mFilePath = "/sdcard/camera.h264";
 
 
 using namespace android;
@@ -45,180 +47,14 @@ extern "C"
 #endif
 
 
-
-uint8_t*bufferPoint[2];
-//sp<JMediaCodec>  mCodec = NULL;
-
-
-void JNI_API_NAME(native_configure)( JNIEnv *env, jobject thiz,
-										jobjectArray keys, jobjectArray values, jobject jsurface, jobject jcrypto, jint flags)
-{
-/*
-	mCodec = new JMediaCodec(env, thiz, "video/avc", true, false);
-	status_t err = mCodec->initCheck();
-	
-    sp<AMessage> format;
-    err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
-
-    if (err != OK) {
-        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-        return;
-    }
-
-	#if HEIGHT_VERSION
-	    sp<IGraphicBufferProducer> bufferProducer;
-	    if (jsurface != NULL) {
-		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-		if (surface != NULL) {
-		    bufferProducer = surface->getIGraphicBufferProducer();
-		} else {
-		    jniThrowException(
-		            env,
-		            "java/lang/IllegalArgumentException",
-		            "The surface has been released");
-		    return;
-		}
-	    }
-
-	    sp<ICrypto> crypto;
-	    if (jcrypto != NULL) {
-		//crypto = JCrypto::GetCrypto(env, jcrypto);
-	    }
-
-	    err = mCodec->configure(format, bufferProducer, crypto, flags);
-	#else
-	    sp<ISurfaceTexture> surfaceTexture;
-	    if (jsurface != NULL) 
-		{
-			sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-			if (surface != NULL) 
-			{
-				surfaceTexture = surface->getSurfaceTexture();
-			} 
-			else 
-			{
-				jniThrowException(
-						env,
-						"java/lang/IllegalArgumentException",
-						"The surface has been released");
-				return;
-			}
-	    }
-
-	    sp<ICrypto> crypto;
-	    if (jcrypto != NULL) {
-		//crypto = JCrypto::GetCrypto(env, jcrypto);
-	    }
-
-	    err = mCodec->configure(format, surfaceTexture, crypto, flags);
-	#endif
-
-	    err = mCodec->start();
-
-		jobjectArray inputBuffers;
-		err = mCodec->getBuffers(env, true, &inputBuffers);
-
-		for(int i =0;i<2;i++)
-		{
-			jobject inputObject = env->GetObjectArrayElement(inputBuffers, i);
-			bufferPoint[i] 	= (uint8_t*)env->GetDirectBufferAddress( inputObject);
-		}
-	*/
-}
-
-int bytesToInt(char* src, int offset) 
-{  
-	int value;    
-	value = (int) ((src[offset]	  & 0xFF)   
-				| ((src[offset+1] & 0xFF)<<8)   
-				| ((src[offset+2] & 0xFF)<<16)   
-				| ((src[offset+3] & 0xFF)<<24));  
-	return value;  
-} 
-
-void decorder(JNIEnv *env, jobject thiz, char*data, int dataLen)
-{
-	ALOGTEST("startCodec------------0");
-	/*
-	size_t inputBufferIndex = 0, outputBufferIndex = 0;
-	
-	status_t err;
-	int mCount = 0;
-	AString errorDetailMsg;
-	
-	
-	err = mCodec->dequeueInputBuffer(&inputBufferIndex, -1);
-	ALOGTEST("startCodec------------4 err:%d", err);
-
-
-	uint8_t* inputChar = bufferPoint[inputBufferIndex];
-	memcpy(inputChar, data, dataLen);
-	
-	err = mCodec->queueInputBuffer(inputBufferIndex, 0, dataLen, mCount * 1000000 / 20, 0, &errorDetailMsg);
-	mCount++;
-	
-	ALOGTEST("startCodec------------6 err:%d input index:%d inputChar addr:%d", err, inputBufferIndex, inputChar);
-	
-	
-	err = mCodec->dequeueOutputBuffer(env, NULL, &outputBufferIndex, 0);
-	ALOGTEST("startCodec------------7 err:%d outputBufferIndex:%d", err, outputBufferIndex);
-	
-	while (err ==0 && outputBufferIndex >= 0) 
-	{
-		#if HEIGHT_VERSION
-		    mCodec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
-		#else
-		    mCodec->releaseOutputBuffer(outputBufferIndex, true);
-		#endif
-		err = mCodec->dequeueOutputBuffer(env, NULL, &outputBufferIndex, 0);
-	}
-
-	if (outputBufferIndex < 0) 
-	{
-		ALOGTEST("startCodec------------err :%d ", outputBufferIndex);
-	}
-	*/
-	ALOGTEST("startCodec------------8");
-}
-
-void JNI_API_NAME(startCodec)( JNIEnv *env, jobject thiz)
-{
-	char length[4] = {0};
-	char data[1000000] = {0};
-
-	FILE *file = fopen(mFilePath, "rb");
-	int res = 0, dataLen = 0;
-    
-	do 
-	{
-		res = fread(length, 4, 1, file);
-		if(res>0)
-		{
-			dataLen = bytesToInt(length,0);
-			res = fread(data, dataLen, 1, file);
-			
-			ALOGTEST("startCodec-----------3 res:%d dataLen:%d", res, dataLen);
-			
-			decorder(env, thiz, data, dataLen);
-			
-			usleep(50*1000);
-		}
-	} while (res>0);
-
-	fclose(file);
-}
-
-
-
-
-static sp<TestFileCodec>    mpFileDecoder;
-static TestEncoder          *mpFileEncoder = NULL;
+static sp<FileDeCodec>    mpFileDecoder 	= NULL;
+static FileEnCodec        *mpFileEncoder 	= NULL;
 
  
 static CodecReceiver *mpCodecRecv = NULL;
 static CodecSender   *mpCodecSend = NULL;
 
-jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject thiz, 						
+static jboolean StartVideoSend(JNIEnv *env, jobject thiz, 						
 						jobjectArray keys, jobjectArray values,
 						jobject jsurface,
 						jobject jcrypto,
@@ -227,49 +63,33 @@ jboolean JNI_API_NAME(StartVideoSend)(JNIEnv *env, jobject thiz,
 						)
 {
 	ALOGE("Enter:StartVideoSend----------->1");
-	/*
-	sp<AMessage> format;
-	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
-
-	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-
-	sp<ICrypto> crypto;
-	if (jcrypto != NULL) {
-	//crypto = JCrypto::GetCrypto(env, jcrypto);
-	}
-	
-	mpSenderRender = new FilesDecodec();
-	ALOGE("Enter:StartVideoSend----------->2");
-	mpSenderRender->CreateCodec(format, surface, crypto, flags);
-	ALOGE("Enter:StartVideoSend----------->3");
-
-
-	ALOGE("Enter:StartVideoSend----------->4");
-	mpSenderRender->StartVideo(0);
-	ALOGE("Enter:StartVideoSend----------->5");
-	*/
 
 	return true;
 }
 
-jboolean JNI_API_NAME(StopVideoSend)(JNIEnv *env, jobject)
+static jboolean StopVideoSend(JNIEnv *env, jobject)
 {
-	//mpSenderRender->StopVideo();
-	//mpSenderRender->DeInit();
+	int res = CodecBaseLib::getInstance()->testAdd(1,1);
+	ALOGE("Enter:StartVideoSend----------->res:%d", res);
 	return true;
 }
 
 
-jboolean JNI_API_NAME(StartFileDecoder)(JNIEnv *env, jobject, 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+static jboolean StartFileDecoder(JNIEnv *env, jobject, 
 											jobjectArray keys, jobjectArray values,
 											jobject jsurface,
 											jobject jcrypto,
-											jint flags)
+											jint flags,
+											jstring filepath)
 {
-		ALOGE("Enter:StartFileDecoder----------->1");
+	ALOGE("Enter:StartFileDecoder----------->1");
 	
 	sp<AMessage> format;
-	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
+	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
 
 	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 
@@ -278,36 +98,50 @@ jboolean JNI_API_NAME(StartFileDecoder)(JNIEnv *env, jobject,
 	//crypto = JCrypto::GetCrypto(env, jcrypto);
 	}
 	
-	mpFileDecoder = new TestFileCodec();
-	ALOGE("Enter:StartFileDecoder----------->2");
-	mpFileDecoder->CreateCodec(format, surface, crypto, flags);
-	ALOGE("Enter:StartFileDecoder----------->3");
+	
+	if(mpFileDecoder == NULL)
+	{
+		const char *file = env->GetStringUTFChars(filepath, NULL);
+	
+		mpFileDecoder = new FileDeCodec();
+		ALOGE("Enter:StartFileDecoder----------->2");
+		mpFileDecoder->CreateCodec(format, surface, crypto, flags, (char *)file);
+		ALOGE("Enter:StartFileDecoder----------->3");
+		env->ReleaseStringUTFChars(filepath, file);
 
-
-	ALOGE("Enter:StartFileDecoder----------->4");
-	mpFileDecoder->StartVideo(0);
+		ALOGE("Enter:StartFileDecoder----------->4");
+		mpFileDecoder->StartVideo(0);
+	}
+	
 	ALOGE("Enter:StartFileDecoder----------->5");
 	
 	return true;
 }
 
-jboolean JNI_API_NAME(StopFileDecoder)(JNIEnv *env, jobject)
+static jboolean StopFileDecoder(JNIEnv *env, jobject)
 {
-	mpFileDecoder->StopVideo();
-	return mpFileDecoder->DeInit();
+	if(mpFileDecoder!=NULL)
+	{
+		mpFileDecoder->StopVideo();
+		mpFileDecoder->DeInit();
+		mpFileDecoder = NULL;
+		return true;
+	}
+	return false;
 }
 
 
-jboolean JNI_API_NAME(StartFileEncoder)(JNIEnv *env, jobject, 
+static jboolean StartFileEncoder(JNIEnv *env, jobject, 
 											jobjectArray keys, jobjectArray values,
 											jobject jsurface,
 											jobject jcrypto,
-											jint flags)
+											jint flags,
+											jstring filepath)
 {
 	ALOGE("Enter:StartFileEncoder----------->1");
 	
 	sp<AMessage> format;
-	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
+	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
 
 	
 
@@ -316,21 +150,23 @@ jboolean JNI_API_NAME(StartFileEncoder)(JNIEnv *env, jobject,
 	//crypto = JCrypto::GetCrypto(env, jcrypto);
 	}
 	
-	mpFileEncoder = new TestEncoder();
+	const char *file = env->GetStringUTFChars(filepath, NULL);
+	
+	mpFileEncoder = new FileEnCodec();
 	ALOGE("Enter:StartFileEncoder----------->2");
 
 	if(jsurface!=NULL)
 	{
 		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-		mpFileEncoder->CreateCodec(format, surface, crypto, flags);
+		mpFileEncoder->CreateCodec(format, surface, crypto, flags, (char*)file);
 		ALOGE("Enter:StartFileEncoder----------->31");
 	}else
 	{
-		mpFileEncoder->CreateCodec(format, NULL, crypto, flags);
+		mpFileEncoder->CreateCodec(format, NULL, crypto, flags, (char*)file);
 		ALOGE("Enter:StartFileEncoder----------->32");
 	}
 
-
+	env->ReleaseStringUTFChars(filepath, file);
 
 	ALOGE("Enter:StartFileEncoder----------->4");
 	mpFileEncoder->StartVideo(0);
@@ -339,7 +175,7 @@ jboolean JNI_API_NAME(StartFileEncoder)(JNIEnv *env, jobject,
 	return true;
 }
 
-jboolean JNI_API_NAME(AddEncoderData)(JNIEnv *env, jobject, jbyteArray byteData, jint len)
+static jboolean AddEncoderData(JNIEnv *env, jobject, jbyteArray byteData, jint len)
 {
 	jbyte* cameraFrame = env->GetByteArrayElements(byteData, NULL);
 	mpFileEncoder->AddDecodecSource(reinterpret_cast<char*>(cameraFrame), len);
@@ -347,22 +183,22 @@ jboolean JNI_API_NAME(AddEncoderData)(JNIEnv *env, jobject, jbyteArray byteData,
 	return true;
 }
 
-jboolean JNI_API_NAME(StopFileEncoder)(JNIEnv *env, jobject)
+static jboolean StopFileEncoder(JNIEnv *env, jobject)
 {
 	mpFileEncoder->StopVideo();
 	return mpFileEncoder->DeInit();
 }
 
-jboolean JNI_API_NAME(StartCodecSender)(JNIEnv *env, jobject, 
+
+static jboolean StartCodecSender(JNIEnv *env, jobject, 
 					jobjectArray keys, jobjectArray values,
 					jobject jsurface, jobject jcrypto, jstring destip, 
 					jshort destport, jshort localport, jint flags)
 {
-	
 	ALOGE("Enter:StartCodecSender----------->1");
 	
 	sp<AMessage> format;
-	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
+	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
 
 	
 
@@ -396,7 +232,7 @@ jboolean JNI_API_NAME(StartCodecSender)(JNIEnv *env, jobject,
         return true;
 }
 
-jboolean JNI_API_NAME(CodecSenderData)(JNIEnv *env, jobject, jbyteArray byteData, jint len)
+static jboolean CodecSenderData(JNIEnv *env, jobject, jbyteArray byteData, jint len)
 {
 	jbyte* cameraFrame = env->GetByteArrayElements(byteData, NULL);
 	mpCodecSend->AddDecodecSource(reinterpret_cast<char*>(cameraFrame), len);
@@ -404,7 +240,7 @@ jboolean JNI_API_NAME(CodecSenderData)(JNIEnv *env, jobject, jbyteArray byteData
 	return true;
 }
 
-jboolean JNI_API_NAME(StopCodecSender)(JNIEnv *env, jobject)
+static jboolean StopCodecSender(JNIEnv *env, jobject)
 {
 	mpCodecSend->StopVideo();
 	mpCodecSend->DeInit();
@@ -413,7 +249,7 @@ jboolean JNI_API_NAME(StopCodecSender)(JNIEnv *env, jobject)
 	return true;
 }
 
-jboolean JNI_API_NAME(StartCodecRecver)(JNIEnv *env, jobject, 
+static jboolean StartCodecRecver(JNIEnv *env, jobject, 
 					jobjectArray keys, jobjectArray values,
 					jobject jsurface, jobject jcrypto, jint flags,
 					jshort recvport)
@@ -421,7 +257,7 @@ jboolean JNI_API_NAME(StartCodecRecver)(JNIEnv *env, jobject,
 	ALOGE("Enter:StartCodecRecver----------->1");
 	
 	sp<AMessage> format;
-	status_t err = ConvertKeyValueArraysToMessage(env, keys, values, &format);
+	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
 
 	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 
@@ -443,13 +279,18 @@ jboolean JNI_API_NAME(StartCodecRecver)(JNIEnv *env, jobject,
 	return true;
 }
 
-jboolean JNI_API_NAME(StopCodecRecver)(JNIEnv *env, jobject)
+static jboolean StopCodecRecver(JNIEnv *env, jobject)
 {
 	mpCodecRecv->StopVideo();
 	mpCodecRecv->DeInit();
 	delete mpCodecRecv;
 	mpCodecRecv = NULL;
 	return true;
+}
+
+static jboolean LoadBaseLib(JNIEnv *env, jobject obj, int version)
+{
+	return CodecBaseLib::getInstance()->LoadBaseLib(version);
 }
 
 #ifdef __cplusplus
@@ -463,51 +304,39 @@ jboolean JNI_API_NAME(StopCodecRecver)(JNIEnv *env, jobject)
 
 static JNINativeMethod gMethods[] = 
 {
-	/*
-    	{ "native_configure",
-      	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
-      	"Landroid/media/MediaCrypto;I)V",
-      	(void *)JNI_API_NAME(native_configure) },
-
-	{ "startCodec", "(Landroid/media/MediaCodec$BufferInfo;)V", (void *)JNI_API_NAME(startCodec) },
-	 
-	{ "StartVideoSend", 
- 	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
-      	"Landroid/media/MediaCrypto;ILandroid/media/MediaCodec$BufferInfo;)Z",
-	(void *)JNI_API_NAME(StartVideoSend) },
+	{ "LoadBaseLib", "(I)Z", (void *)LoadBaseLib },
 	
-	{ "StopVideoSend", "()Z", (void *)JNI_API_NAME(StopVideoSend) },
-	*/
-    	{ "StartFileDecoder",
+	{ "StopVideoSend", "()Z", (void *)StopVideoSend },
+	
+    { "StartFileDecoder",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
-      	"Landroid/media/MediaCrypto;I)Z",
-      	(void *)JNI_API_NAME(StartFileDecoder) },
+      	"Landroid/media/MediaCrypto;ILjava/lang/String;)Z",
+      	(void *)StartFileDecoder },
+	{ "StopFileDecoder", "()Z", (void *)StopFileDecoder },
 
-	{ "StopFileDecoder", "()Z", (void *)JNI_API_NAME(StopFileDecoder) },
-
-    	{ "StartFileEncoder",
-      	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
-      	"Landroid/media/MediaCrypto;I)Z",
-      	(void *)JNI_API_NAME(StartFileEncoder) },
-
-	{ "StopFileEncoder", "()Z", (void *)JNI_API_NAME(StopFileEncoder) },
-
-	{ "AddEncoderData", "([BI)Z", (void *)JNI_API_NAME(AddEncoderData) },
+	
+	{ "StartFileEncoder",
+		"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
+		"Landroid/media/MediaCrypto;ILjava/lang/String;)Z",
+		(void *)StartFileEncoder },
+	{ "StopFileEncoder", "()Z", (void *)StopFileEncoder },
+	{ "AddEncoderData", "([BI)Z", (void *)AddEncoderData },
 
 
 	{ "StartCodecSender",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
       	"Landroid/media/MediaCrypto;Ljava/lang/String;SSI)Z",
-      	(void *)JNI_API_NAME(StartCodecSender) },
-
-	{ "StopCodecSender", "()Z", (void *)JNI_API_NAME(StopCodecSender) },
-
+      	(void *)StartCodecSender },
+	{ "StopCodecSender", "()Z", (void *)StopCodecSender },
+	{ "CodecSenderData", "([BI)Z", (void *)CodecSenderData },
+	
+	
 	{ "StartCodecRecver",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
       	"Landroid/media/MediaCrypto;IS)Z",
-      	(void *)JNI_API_NAME(StartCodecRecver) },
-
-	{ "StopCodecRecver", "()Z", (void *)JNI_API_NAME(StopCodecRecver) },
+      	(void *)StartCodecRecver },
+	{ "StopCodecRecver", "()Z", (void *)StopCodecRecver },
+	
 };
 
 int jniRegisterNativeMethods1(JNIEnv* env,

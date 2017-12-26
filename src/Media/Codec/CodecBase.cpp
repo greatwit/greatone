@@ -9,6 +9,8 @@
 
 
 
+
+
 namespace android 
 {
 
@@ -63,7 +65,7 @@ void  	 CodecBase::registerBufferCall(ICodecCallback *call)
 }
 
 status_t CodecBase::startCodec()
-{
+{   
 	status_t err;
 	err = mCodec->start();
 	

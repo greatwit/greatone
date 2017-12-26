@@ -36,8 +36,9 @@ bool CodecReceiver::CreateCodec( const sp<AMessage> &format, const sp<Surface> &
 		ALOGE("TAG 2,function %s,line:%d  RtpReceive::Singleton->initSession failed",__FUNCTION__,__LINE__);
 	}
 
-	mCodec = new CodecBase("video/avc", true, false);
-	mCodec->CreateCodec(format, surface, crypto, flags);
+	//mCodec = new CodecBase("video/avc", true, false);
+	//mCodec->CreateCodec(format, surface, crypto, flags);
+	CodecBaseLib::getInstance()->CodecCreate(format, surface, crypto, flags, false);
 	
 	return true;
 }
@@ -47,13 +48,15 @@ bool CodecReceiver::DeInit()
 	StopVideo();
 	mpReceive->deinitSession();
 	SAFE_DELETE(mpReceive);
-	mCodec = NULL;
+	//mCodec = NULL;
 	return true;
 }
 
 bool CodecReceiver::StartVideo(int deivceid)
 {
-	mCodec->startCodec();
+	//mCodec->startCodec();
+	CodecBaseLib::getInstance()->StartCodec();
+	
 	mpReceive->startThread();
 	
 	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
@@ -66,7 +69,9 @@ bool CodecReceiver::StopVideo()
 	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	mpReceive->stopThread();
-	mCodec->stopCodec();
+	
+	//mCodec->stopCodec();
+	CodecBaseLib::getInstance()->StopCodec();
 	
 	VIDEOLOGD("TAG 1,function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
@@ -77,7 +82,8 @@ void CodecReceiver::ReceiveSource(int64_t timeStamp, char*mimeType, void* buffer
 {
 	if(0 == strcmp(mimeType, MIME_H264))
 	{
-		mCodec->addBuffer((char*)buffer, dataLen);
+		CodecBaseLib::getInstance()->AddBuffer((char*)buffer, dataLen);
+		//mCodec->addBuffer((char*)buffer, dataLen);
 	}
 
 	return;

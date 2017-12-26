@@ -35,39 +35,42 @@ struct PersistentSurface;
 struct JMediaCodec;
 
 
+
 struct CodecBase : public Thread
 {
-     public:
+     public:  //api
     	CodecBase( const char *name, bool nameIsType, bool encoder);
 
     	status_t CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
 	
-	void  	 registerBufferCall(ICodecCallback *call);
-	status_t startCodec();
-	status_t stopCodec();
+		void  	 registerBufferCall(ICodecCallback *call);
+		status_t startCodec();
+		status_t stopCodec();
 
-	status_t addBuffer(char*data, int len);
-	status_t getCodecBuffer();
+		status_t addBuffer(char*data, int len);
+		
 
 	
     protected:
     	virtual ~CodecBase();
-	virtual bool threadLoop();
+		virtual bool threadLoop();
+		
+		status_t getCodecBuffer();
 	
 
     private:
         sp<JMediaCodec> 	mCodec;
-	ICodecCallback		*mpBufferCall;
-	struct CodecBuffer	mBufferINfo;
-	
-	int*		mpInputBufferPoint;
-	int*		mpOutputBufferPoint;
-	int				miInputArrayLen;
-	int				miOutputArrayLen;
+		ICodecCallback		*mpBufferCall;
+		struct CodecBuffer	mBufferINfo;
+		
+		int*		mpInputBufferPoint;
+		int*		mpOutputBufferPoint;
+		int				miInputArrayLen;
+		int				miOutputArrayLen;
 
-  
-	JNIEnv 			*mpEnv;
-	int 			mCount;
+	  
+		JNIEnv 			*mpEnv;
+		int 			mCount;
 };
 
 }  // namespace android

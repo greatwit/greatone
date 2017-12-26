@@ -1,5 +1,5 @@
-#ifndef TEST_FILE_CODEC_H
-#define TEST_FILE_CODEC_H
+#ifndef FILE_EN_CODEC_H_
+#define FILE_EN_CODEC_H_
 
 #include <utils/threads.h> 
 #include <utils/Log.h>
@@ -8,11 +8,7 @@
 #include <string>
 #include <map>
 
-
-#include "IVideoCallback.h"
-#include "IReceiveCallback.h"
-
-#include "CodecBase.h"
+#include "Common.h"
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
@@ -25,32 +21,30 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include <gui/Surface.h>
+#include "CameraHardware.h" 
+#include "IVideoCallback.h"
+
+#include <gui/Surface.h> 
 
 using namespace android;
 
-class TestFileCodec : public Thread, public ICodecCallback
+class FileEnCodec : public ICodecCallback
 {
 	public:
-		TestFileCodec();
-		virtual ~TestFileCodec();
-		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
-		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
+		FileEnCodec();
+		virtual ~FileEnCodec();
+		
+		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, char*filename);
 		
 		bool DeInit();
 		
 		bool StartVideo(int deivceid);
 		bool StopVideo();
 
+		void AddDecodecSource(char *data, int len);
 		void onCodecBuffer(struct CodecBuffer& buff);
 		
-		
 	protected:
-		bool isFirstFrame();
-		void setFirstFrame(bool bFirs);
-
-		void decorder(char*data, int dataLen);
-		virtual bool threadLoop();
 
 
 	private:
@@ -61,8 +55,10 @@ class TestFileCodec : public Thread, public ICodecCallback
 		
 		char mcharLength[4];
 		char mData[1000000];
+		char mSpsPps[21];
+		int  mSpsPpsLen;
 		
-		sp<CodecBase> 	mCodec;
+		//sp<CodecBase> 	mCodec;
 };
 
 #endif

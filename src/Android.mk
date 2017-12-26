@@ -1,64 +1,4 @@
 LOCAL_PATH:= $(call my-dir)
-CODEC_PATH:= $(LOCAL_PATH)/Media/Codec/base5
-
-##################################################
-###                  codec lib                 ###
-##################################################
-
-include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES:= \
-	$(subst $(LOCAL_PATH)/,,$(wildcard $(CODEC_PATH)/*.c*)) \
-	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Codec/*.c*))
-
-#JCrypto rely libbinder libmedia
-LOCAL_SHARED_LIBRARIES := \
-    libandroid_runtime \
-    libnativehelper \
-    liblog \
-    libutils \
-    libcutils \
-    libbinder \
-    libmedia \
-    libgui \
-    libstagefright \
-    libstagefright_foundation
-
-
-LOCAL_C_INCLUDES += \
-    external/jhead \
-    external/tremor/Tremor \
-    external/stlport/stlport \
-    frameworks/base/core/jni \
-    frameworks/av/media/libmedia \
-    frameworks/av/media/libstagefright \
-    frameworks/av/media/libstagefright/codecs/amrnb/enc/src \
-    frameworks/av/media/libstagefright/codecs/amrnb/common \
-    frameworks/av/media/libstagefright/codecs/amrnb/common/include \
-    frameworks/av/media/mtp \
-    frameworks/native/include/media/openmax \
-	$(LOCAL_PATH)/Media/Codec \
-	$(CODEC_PATH) \
-    $(call include-path-for, libhardware)/hardware \
-    system/media/camera/include \
-    $(PV_INCLUDES) \
-    $(JNI_H_INCLUDE) \
-    $(call include-path-for, corecg graphics)
-
-LOCAL_C_INCLUDES += external/stlport/stlport bionic
-
-
-#LOCAL_SHARED_LIBRARIES += libstlport
-
-
-LOCAL_MODULE:= libCodecBase
-
-include $(BUILD_SHARED_LIBRARY)
-
-include $(call all-makefiles-under,$(LOCAL_PATH))
-
-
-
 
 
 ##################################################
@@ -78,20 +18,14 @@ LOCAL_SRC_FILES:= \
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
     libutils \
-    libcutils
+    libcutils \
+	libdl
 
 
 LOCAL_C_INCLUDES += \
-    external/jhead \
-    external/tremor/Tremor \
-    external/stlport/stlport \
     frameworks/base/core/jni \
     frameworks/av/media/libmedia \
     frameworks/av/media/libstagefright \
-    frameworks/av/media/libstagefright/codecs/amrnb/enc/src \
-    frameworks/av/media/libstagefright/codecs/amrnb/common \
-    frameworks/av/media/libstagefright/codecs/amrnb/common/include \
-    frameworks/av/media/mtp \
     frameworks/native/include/media/openmax \
 	$(LOCAL_PATH)/Common \
 	$(LOCAL_PATH)/Media \
@@ -101,21 +35,18 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/RtpTrans	\
 	$(LOCAL_PATH)/RtpTrans/rtplib/jrtplib	\
     $(call include-path-for, libhardware)/hardware \
-    system/media/camera/include \
-    $(PV_INCLUDES) \
-    $(JNI_H_INCLUDE) \
     $(call include-path-for, corecg graphics)
 
-LOCAL_C_INCLUDES += external/stlport/stlport bionic
+	LOCAL_C_INCLUDES += external/stlport/stlport bionic
 
 LOCAL_CFLAGS +=
 
-LOCAL_SHARED_LIBRARIES += libCodecBase
+
 LOCAL_SHARED_LIBRARIES += libstlport
 
 
-
 LOCAL_MODULE:= libgreat_media
+
 
 include $(BUILD_SHARED_LIBRARY)
 
