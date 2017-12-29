@@ -17,8 +17,10 @@ LOCAL_SRC_FILES:= \
 	#JCrypto rely libbinder libmedia
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
+	libnativehelper \
     libutils \
     libcutils \
+	libcamera_client \
 	libdl
 
 

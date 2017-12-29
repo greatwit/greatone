@@ -26,24 +26,34 @@
 
 #include <gui/Surface.h> 
 
+#include <camera/Camera.h>
+#include <binder/IMemory.h>
+
 using namespace android;
 
-class CodecSender : public ICodecCallback
+class CodecSender : public CameraListener
 {
 	public:
 		CodecSender();
 		virtual ~CodecSender();
-		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags);
-		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort);
+		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort);
+		bool CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort, int cameraId);
 		
 		bool DeInit();
 		
+		void SetCameraParameter(String8 params8);
+		String8 GetCameraParameter();
+		
 		bool ConnectDest(std::string ip, short port);
-		bool StartVideo(int deivceid);
+		bool StartVideo();
 		bool StopVideo();
 
 		void AddDecodecSource(char *data, int len);
 		void onCodecBuffer(struct CodecBuffer& buff);
+		
+		virtual void notify(int32_t msgType, int32_t ext1, int32_t ext2);
+		virtual void postData(int32_t msgType, const sp<IMemory>& dataPtr, camera_frame_metadata_t *metadata);
+		virtual void postDataTimestamp(nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr);
 		
 	protected:
 
@@ -51,6 +61,7 @@ class CodecSender : public ICodecCallback
 	private:
 		bool				mFirstFrame;
 		bool				mbRunning;
+		sp<Camera> 			mCamera;
 		
 		//sp<CodecBase> 	mCodec;
 		RtpSender					*mpSender;

@@ -27,6 +27,8 @@
 
 #include <gui/Surface.h>
 
+
+
 using namespace android;
 
 class CodecReceiver : public IReceiveCallback

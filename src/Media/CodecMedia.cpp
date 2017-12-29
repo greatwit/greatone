@@ -34,6 +34,9 @@
 #include "Common.h"
 
 
+#include "Utils.h"
+
+
 #include "CodecMedia.h"
 #define TAG "CodecMedia"
 
@@ -52,7 +55,7 @@ static FileEnCodec        *mpFileEncoder 	= NULL;
 
  
 static CodecReceiver *mpCodecRecv = NULL;
-static CodecSender   *mpCodecSend = NULL;
+static sp<CodecSender>  mpCodecSend = NULL;
 
 static jboolean StartVideoSend(JNIEnv *env, jobject thiz, 						
 						jobjectArray keys, jobjectArray values,
@@ -189,8 +192,9 @@ static jboolean StopFileEncoder(JNIEnv *env, jobject)
 	return mpFileEncoder->DeInit();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////sender///////////////////////////////////////////////////////////////////////////
 
-static jboolean StartCodecSender(JNIEnv *env, jobject, 
+static jboolean StartCodecSender(JNIEnv *env, jobject thiz, 
 					jobjectArray keys, jobjectArray values,
 					jobject jsurface, jobject jcrypto, jstring destip, 
 					jshort destport, jshort localport, jint flags)
@@ -213,23 +217,60 @@ static jboolean StartCodecSender(JNIEnv *env, jobject,
 	if(jsurface!=NULL)
 	{
 		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-		mpCodecSend->CreateCodec(format, surface, crypto, flags, localport);
+		mpCodecSend->CreateCodec(format, surface, crypto, flags, localport, 0);
 		ALOGE("Enter:StartCodecSender----------->31");
 	}else
 	{
-		mpCodecSend->CreateCodec(format, NULL, crypto, flags, localport);
+		mpCodecSend->CreateCodec(format, NULL, crypto, flags, localport, 0);
 		ALOGE("Enter:StartCodecSender----------->32");
 	}
 
-	const char *filePath = env->GetStringUTFChars(destip, NULL);
-	mpCodecSend->ConnectDest(filePath, destport);
-	env->ReleaseStringUTFChars(destip, filePath);
+	const char *pAddr = env->GetStringUTFChars(destip, NULL);
+	mpCodecSend->ConnectDest(pAddr, destport);
+	env->ReleaseStringUTFChars(destip, pAddr);
 	
-	ALOGE("Enter:StartCodecSender----------->4");
-	mpCodecSend->StartVideo(0);
-	ALOGE("Enter:StartCodecSender----------->5");
+
 	
-        return true;
+
+	
+    return true;
+}
+
+static jboolean StartCameraVideo(JNIEnv *env, jobject)
+{
+	mpCodecSend->StartVideo();
+	ALOGE("StartCameraVideo");
+	return true;
+}
+
+static jboolean StopCameraVideo(JNIEnv *env, jobject)
+{
+	mpCodecSend->StopVideo();
+	ALOGE("StopCameraVideo");
+	return true;
+}
+
+static jstring GetCameraParameter(JNIEnv *env, jobject)
+{
+    ALOGE("GetCameraParameter");
+
+    String8 params8 = mpCodecSend->GetCameraParameter();
+    if (params8.isEmpty()) {
+        ALOGE("getParameters failed (empty parameters)");
+    }
+    return env->NewStringUTF(params8.string());
+}
+
+static jboolean SetCameraParameter(JNIEnv *env, jobject, jstring params)
+{
+	const jchar* str = env->GetStringCritical(params, 0);
+    String8 params8;
+    if (params) {
+        params8 = String8(str, env->GetStringLength(params));
+        env->ReleaseStringCritical(params, str);
+    }
+    mpCodecSend->SetCameraParameter(params8);
+	return true;
 }
 
 static jboolean CodecSenderData(JNIEnv *env, jobject, jbyteArray byteData, jint len)
@@ -244,10 +285,12 @@ static jboolean StopCodecSender(JNIEnv *env, jobject)
 {
 	mpCodecSend->StopVideo();
 	mpCodecSend->DeInit();
-	delete mpCodecSend;
+	//delete mpCodecSend;
 	mpCodecSend = NULL;
 	return true;
 }
+
+//////////////////////////////////////////////////////////////////////////recerver//////////////////////////////////////////////////////////////
 
 static jboolean StartCodecRecver(JNIEnv *env, jobject, 
 					jobjectArray keys, jobjectArray values,
@@ -314,7 +357,7 @@ static JNINativeMethod gMethods[] =
       	(void *)StartFileDecoder },
 	{ "StopFileDecoder", "()Z", (void *)StopFileDecoder },
 
-	
+	//
 	{ "StartFileEncoder",
 		"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
 		"Landroid/media/MediaCrypto;ILjava/lang/String;)Z",
@@ -322,15 +365,18 @@ static JNINativeMethod gMethods[] =
 	{ "StopFileEncoder", "()Z", (void *)StopFileEncoder },
 	{ "AddEncoderData", "([BI)Z", (void *)AddEncoderData },
 
-
+	//
 	{ "StartCodecSender",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
       	"Landroid/media/MediaCrypto;Ljava/lang/String;SSI)Z",
       	(void *)StartCodecSender },
 	{ "StopCodecSender", "()Z", (void *)StopCodecSender },
+	{ "StartCameraVideo", "()Z", (void *)StartCameraVideo },
+	{ "GetCameraParameter", "()Ljava/lang/String;", (void *)GetCameraParameter },
+	{ "SetCameraParameter", "(Ljava/lang/String;)Z", (void *)SetCameraParameter },
 	{ "CodecSenderData", "([BI)Z", (void *)CodecSenderData },
 	
-	
+	//
 	{ "StartCodecRecver",
       	"([Ljava/lang/String;[Ljava/lang/Object;Landroid/view/Surface;"
       	"Landroid/media/MediaCrypto;IS)Z",
@@ -390,6 +436,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 		ALOGE("can't load ffmpeg");
 	}
 	
+	if( registerCamera(env) != JNI_OK) 
+	{
+		ALOGE("registerCamera failed");
+	}
+	
+	
 	ALOGTEST( "loading . . .2");
 	
 	result = JNI_VERSION_1_4;
@@ -401,9 +453,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	return result;
 }
 
-int register_Java_com_great_happyness_Codec_CodecMedia(JNIEnv *env) 
-{
-    return AndroidRuntime::registerNativeMethods(env, "Java/com/great/happyness/Codec/CodecMedia", gMethods, NELEM(gMethods));
-}
+//int register_Java_com_great_happyness_Codec_CodecMedia(JNIEnv *env) 
+//{
+//    return AndroidRuntime::registerNativeMethods(env, "Java/com/great/happyness/Codec/CodecMedia", gMethods, NELEM(gMethods));
+//}
 
 

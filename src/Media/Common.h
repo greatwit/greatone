@@ -10,6 +10,7 @@
 
 #define ALOGTEST(...)		__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
 #define ALOGE(...)			__android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
+#define ALOGV(...)			__android_log_print(ANDROID_LOG_WARN,	TAG,  __VA_ARGS__)
 
 using namespace android;
 
