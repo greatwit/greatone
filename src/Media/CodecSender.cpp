@@ -27,8 +27,10 @@ bool CodecSender::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &for
 	return true;
 }
 
-bool CodecSender::CreateCodec( const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort, int cameraId)
+bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort, int cameraId)
 {
+
+	//mContext = new CameraContext(this);
 
 	mpSender = new RtpSender();
 	if(!mpSender->initSession(sendPort))
@@ -37,13 +39,17 @@ bool CodecSender::CreateCodec( const sp<AMessage> &format, const sp<Surface> &su
 		return false;
 	}
 
+	CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
+	CodecBaseLib::getInstance()->RegisterBufferCall(this);
+	
 	mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
     if (mCamera->getStatus() != NO_ERROR) {
         ALOGE("Camera initialization failed");
     }
+	//mContext->incStrong(thiz);
 	mCamera->setListener(this);
-	mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_CAMERA);
+	mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
 	if (mCamera->setPreviewDisplay(surface) != NO_ERROR){
 		ALOGE("Camera setPreviewDisplay failed");
     }
@@ -78,7 +84,16 @@ void CodecSender::postData(int32_t msgType, const sp<IMemory>& dataPtr, camera_f
 		ssize_t offset;
 		size_t size;
 		sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
-		//ALOGE("postData: off=%ld, size=%d", offset, size);
+		
+		uint8_t *heapBase = (uint8_t*)heap->base();
+		if (heapBase != NULL)
+		{
+			const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
+			CodecBaseLib::getInstance()->AddBuffer((char*)data, size);
+		}
+		
+		ALOGE("postData: off=%ld, size=%d", offset, size);
+		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
 	}
 }
 
@@ -108,6 +123,7 @@ bool CodecSender::StartVideo()
 {
 
 	//mCodec->startCodec();
+	CodecBaseLib::getInstance()->StartCodec();
 	
 	if (mCamera->startPreview() != NO_ERROR) {
 		ALOGE("Camera startPreview failed");
@@ -124,13 +140,15 @@ bool CodecSender::StopVideo()
 	ALOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	//mCodec->stopCodec();
+	CodecBaseLib::getInstance()->StopCodec();
+	
 	mCamera->stopPreview();
 
 	if (mCamera != NULL) {
 		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_NOOP);
 		mCamera->disconnect();
     }
-	
+
 	VIDEOLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
 	return true;
@@ -156,7 +174,7 @@ bool CodecSender::ConnectDest(std::string ip, short port)
 void CodecSender::onCodecBuffer(struct CodecBuffer& buff)
 {
 	ALOGW("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
-	mpSender->sendBuffer(buff.buf, buff.size, MIME_H264, MIME_H264_LEN, 0);
+	//mpSender->sendBuffer(buff.buf, buff.size, MIME_H264, MIME_H264_LEN, 0);
 }
 
 void CodecSender::AddDecodecSource(char *data, int len)

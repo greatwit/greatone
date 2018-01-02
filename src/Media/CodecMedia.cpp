@@ -217,11 +217,11 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 	if(jsurface!=NULL)
 	{
 		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-		mpCodecSend->CreateCodec(format, surface, crypto, flags, localport, 0);
+		mpCodecSend->CreateCodec(thiz, format, surface, crypto, flags, localport, 0);
 		ALOGE("Enter:StartCodecSender----------->31");
 	}else
 	{
-		mpCodecSend->CreateCodec(format, NULL, crypto, flags, localport, 0);
+		mpCodecSend->CreateCodec(thiz, format, NULL, crypto, flags, localport, 0);
 		ALOGE("Enter:StartCodecSender----------->32");
 	}
 

@@ -153,7 +153,7 @@ status_t CodecBase::addBuffer(char*data, int len)
 		void* inputChar = (void*)mpInputBufferPoint[inputBufferIndex];
 		memcpy(inputChar, data, len);
 	
-		err = mCodec->queueInputBuffer(inputBufferIndex, 0, len, 0 * 1000000 / 20, 0, &errorDetailMsg);
+		err = mCodec->queueInputBuffer(inputBufferIndex, 0, len, 1000000, 0, &errorDetailMsg);
 		ALOGTEST("addBuffer------------2 err:%d", err);
 	
 		mCount++;
@@ -176,7 +176,7 @@ status_t CodecBase::getCodecBuffer()
 		return -1;
 
 	err = mCodec->dequeueOutputBuffer(mpEnv, &outputBufferIndex, offset, size, timeUs, flags, 12000);
-	ALOGE("dequeue 7 size:%d uflags:%d", size, flags);
+	ALOGE("dequeue 7 size:%d uflags:%d err:%d outputBufferIndex:%d", size, flags, err, outputBufferIndex);
 
 	while (err ==0 && outputBufferIndex >= 0) 
 	{

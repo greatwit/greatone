@@ -53,7 +53,8 @@
 	
 	int   AddBuffer(char*data, int len)
 	{
-		gCodec->addBuffer(data, len);
+		if(gCodec!=NULL)
+			gCodec->addBuffer(data, len);
 		
 		return 0;
 	}

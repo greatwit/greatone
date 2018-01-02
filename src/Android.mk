@@ -18,6 +18,8 @@ LOCAL_SRC_FILES:= \
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
 	libnativehelper \
+	liblog \
+	libbinder \
     libutils \
     libcutils \
 	libcamera_client \
