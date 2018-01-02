@@ -266,7 +266,7 @@ static jboolean SetCameraParameter(JNIEnv *env, jobject, jstring params)
 	const jchar* str = env->GetStringCritical(params, 0);
     String8 params8;
     if (params) {
-        params8 = String8(str, env->GetStringLength(params));
+        //params8 = String8(str, env->GetStringLength(params));
         env->ReleaseStringCritical(params, str);
     }
     mpCodecSend->SetCameraParameter(params8);
@@ -436,7 +436,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 		ALOGE("can't load ffmpeg");
 	}
 	
-	if( registerCamera(env) != JNI_OK) 
+	//if( registerCamera(env) != JNI_OK) 
 	{
 		ALOGE("registerCamera failed");
 	}

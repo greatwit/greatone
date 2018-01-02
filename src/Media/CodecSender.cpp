@@ -42,7 +42,7 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
 	CodecBaseLib::getInstance()->RegisterBufferCall(this);
 	
-	mCamera = Camera::connect(cameraId);
+	//mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
     if (mCamera->getStatus() != NO_ERROR) {
         ALOGE("Camera initialization failed");
@@ -50,9 +50,9 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	//mContext->incStrong(thiz);
 	mCamera->setListener(this);
 	mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
-	if (mCamera->setPreviewDisplay(surface) != NO_ERROR){
-		ALOGE("Camera setPreviewDisplay failed");
-    }
+	//if (mCamera->setPreviewDisplay(surface) != NO_ERROR){
+	//	ALOGE("Camera setPreviewDisplay failed");
+    //}
 
 	//mCodec = new CodecBase("video/avc", true, true);
 	//mCodec->CreateCodec(format, surface, crypto, flags);

@@ -15,13 +15,15 @@ LOCAL_SRC_FILES:= \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Common/*.c*))
 
 	#JCrypto rely libbinder libmedia
+	#libgui:need for android6 camera graphic buffer
 LOCAL_SHARED_LIBRARIES := \
-    libandroid_runtime \
+    	libandroid_runtime \
 	libnativehelper \
+	libgui \
 	liblog \
 	libbinder \
-    libutils \
-    libcutils \
+    	libutils \
+    	libcutils \
 	libcamera_client \
 	libdl
 
@@ -45,8 +47,8 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_CFLAGS +=
 
-
-LOCAL_SHARED_LIBRARIES += libstlport
+#need for android4 compile, no for android6
+#LOCAL_SHARED_LIBRARIES += libstlport
 
 
 LOCAL_MODULE:= libgreat_media
