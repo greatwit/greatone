@@ -9,10 +9,9 @@
 #include <map>
 
 
-#include "IVideoCallback.h"
-#include "IReceiveCallback.h"
 
-#include "Common.h"
+
+
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
@@ -27,6 +26,9 @@
 
 #include <gui/Surface.h>
 
+
+#include "IReceiveCallback.h"
+#include "CodecContext.h"
 
 
 using namespace android;

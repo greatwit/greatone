@@ -8,7 +8,6 @@
 #include <string>
 #include <map>
 
-#include "Common.h"
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
@@ -21,10 +20,10 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
-#include "CameraHardware.h" 
-#include "IVideoCallback.h"
-
 #include <gui/Surface.h> 
+
+#include "IVideoCallback.h"
+#include "CodecContext.h"
 
 using namespace android;
 

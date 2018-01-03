@@ -33,11 +33,15 @@
 
 using namespace android;
 
-class CodecSender : public ICodecCallback
+class CodecSender : public CameraListener, public ICodecCallback
 {
 	public:
 		CodecSender();
 		virtual ~CodecSender();
+		
+		virtual void notify(int32_t msgType, int32_t ext1, int32_t ext2);
+		virtual void postData(int32_t msgType, const sp<IMemory>& dataPtr, camera_frame_metadata_t *metadata);
+		virtual void postDataTimestamp(nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr);
 		
 		bool CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort);
 		bool CreateCodec(jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort, int cameraId);
@@ -60,7 +64,7 @@ class CodecSender : public ICodecCallback
 	private:
 		bool				mFirstFrame;
 		bool				mbRunning;
-		//sp<Camera> 			mCamera;
+		sp<Camera> 			mCamera;
 
 		//sp<CodecBase> 	mCodec;
 		RtpSender					*mpSender;

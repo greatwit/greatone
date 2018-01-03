@@ -23,12 +23,13 @@ CodecSender::~CodecSender()
 
 bool CodecSender::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort)
 {
-
 	return true;
 }
 
 bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort, int cameraId)
 {
+	//mContext = new CameraContext(this);
+
 	mpSender = new RtpSender();
 	if(!mpSender->initSession(sendPort))
 	{
@@ -39,16 +40,14 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
 	CodecBaseLib::getInstance()->RegisterBufferCall(this);
 	
-	CameraLib::getInstance()->LoadCameraLib(17);
-	CameraLib::getInstance()->CameraSetup(thiz, cameraId);
-	//mCamera = Camera::connect(cameraId);
+	mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
-    //if (mCamera->getStatus() != NO_ERROR) {
-    //    ALOGE("Camera initialization failed");
-    //}
+    if (mCamera->getStatus() != NO_ERROR) {
+        ALOGE("Camera initialization failed");
+    }
 	//mContext->incStrong(thiz);
-	//mCamera->setListener(this);
-	//mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
+	mCamera->setListener(this);
+	mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
 	//if (mCamera->setPreviewDisplay(surface) != NO_ERROR){
 	//	ALOGE("Camera setPreviewDisplay failed");
     //}
@@ -62,7 +61,7 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 
 bool CodecSender::DeInit()
 {	
-	//StopVideo();
+	StopVideo();
 	//mCodec = NULL;
 	
 	mpSender->deinitSession();
@@ -72,27 +71,67 @@ bool CodecSender::DeInit()
 	return true;
 }
 
+void CodecSender::notify(int32_t msgType, int32_t ext1, int32_t ext2)
+{
+	
+}
+
+void CodecSender::postData(int32_t msgType, const sp<IMemory>& dataPtr, camera_frame_metadata_t *metadata)
+{
+	if (dataPtr != NULL) {
+		ssize_t offset;
+		size_t size;
+		sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
+		
+		uint8_t *heapBase = (uint8_t*)heap->base();
+		if (heapBase != NULL)
+		{
+			const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
+			CodecBaseLib::getInstance()->AddBuffer((char*)data, size);
+		}
+		
+		ALOGE("postData: off=%ld, size=%d", offset, size);
+		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
+	}
+}
+
+void CodecSender::postDataTimestamp(nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr)
+{
+	if (dataPtr != NULL) {
+		ssize_t offset;
+		size_t size;
+		sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
+		ALOGE("postDataTimestamp: off=%ld, size=%d", offset, size);
+	}
+}
 
 void CodecSender::SetCameraParameter(String8 params8)
 {
-	CameraLib::getInstance()->SetCameraParameter(params8);
+	if (mCamera->setParameters(params8) != NO_ERROR) {
+		ALOGE("Camera setParameters failed");
+    }
 }
 
 String8 CodecSender::GetCameraParameter()
 {
-	return CameraLib::getInstance()->GetCameraParameter();
+	return mCamera->getParameters();
 }
 
-bool CodecSender::StartVideo(const sp<Surface> &cameraSurf)
+bool CodecSender::StartVideo(const sp<Surface> &cameraSurface)
 {
-
 	//mCodec->startCodec();
 	CodecBaseLib::getInstance()->StartCodec();
 	
-	CameraLib::getInstance()->StartPreview(cameraSurf);
+	if(cameraSurface!=NULL)
+	if (mCamera->setPreviewDisplay(cameraSurface) != NO_ERROR){
+		ALOGE("Camera setPreviewDisplay failed");
+    }
+	
+	if (mCamera->startPreview() != NO_ERROR) {
+		ALOGE("Camera startPreview failed");
+    }
 
 	VIDEOLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
-
 
 	return true; 
 }
@@ -104,8 +143,12 @@ bool CodecSender::StopVideo()
 	//mCodec->stopCodec();
 	CodecBaseLib::getInstance()->StopCodec();
 	
-	CameraLib::getInstance()->StopPreview();
-	CameraLib::getInstance()->CameraRelease();
+	mCamera->stopPreview();
+
+	if (mCamera != NULL) {
+		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_NOOP);
+		mCamera->disconnect();
+    }
 
 	VIDEOLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 

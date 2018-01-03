@@ -1,5 +1,5 @@
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _CODEC_CONTEXT_H_
+#define _CODEC_CONTEXT_H_
 
 #include <stdlib.h>
 

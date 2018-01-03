@@ -1,4 +1,4 @@
-#include "Common.h"
+#include "CodecContext.h"
 
 #include<dlfcn.h>
 
@@ -11,7 +11,7 @@
 namespace android 
 {
 
-	CodecBaseLib* CodecBaseLib::mSelf = new CodecBaseLib();
+	CodecBaseLib* CodecBaseLib::mSelf = NULL;
 
 	CodecBaseLib::CodecBaseLib():mLibHandle(NULL)
 	{
@@ -30,6 +30,8 @@ namespace android
 
 	CodecBaseLib*CodecBaseLib::getInstance()
 	{
+		if(mSelf == NULL)
+			mSelf = new CodecBaseLib();
 		return mSelf;
 	}
 
