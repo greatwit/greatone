@@ -33,7 +33,7 @@
 
 using namespace android;
 
-class CodecSender : public ICodecCallback
+class CodecSender : public ICodecCallback, public IVideoCallback
 {
 	public:
 		CodecSender();
@@ -53,6 +53,7 @@ class CodecSender : public ICodecCallback
 
 		void AddDecodecSource(char *data, int len);
 		virtual void onCodecBuffer(struct CodecBuffer& buff);
+		virtual void VideoSource(V4L2BUF_t *pBuf);
 		
 		
 	protected:

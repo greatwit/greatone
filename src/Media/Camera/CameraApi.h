@@ -2,7 +2,7 @@
 #define CAMERA_API_H
 
 
-
+#include "IVideoCallback.h"
 
 using namespace android;
 
@@ -12,7 +12,7 @@ extern "C"
 #endif
 
 
-	int CameraSetup(jobject thiz, jint cameraId);
+	int CameraSetup(IVideoCallback *callback, jint cameraId);
 	int CameraRelease();
 	void SetCameraParameter(String8 params8);
 	String8 GetCameraParameter();

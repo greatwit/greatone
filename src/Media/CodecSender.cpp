@@ -40,7 +40,7 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	CodecBaseLib::getInstance()->RegisterBufferCall(this);
 	
 	CameraLib::getInstance()->LoadCameraLib(17);
-	CameraLib::getInstance()->CameraSetup(thiz, cameraId);
+	CameraLib::getInstance()->CameraSetup(this, cameraId);
 	//mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
     //if (mCamera->getStatus() != NO_ERROR) {
@@ -127,6 +127,11 @@ bool CodecSender::ConnectDest(std::string ip, short port)
 	}
 
 	return bRes;
+}
+
+void CodecSender::VideoSource(V4L2BUF_t *pBuf)
+{
+	ALOGW("function %s,line:%d len:%d", __FUNCTION__, __LINE__, pBuf->length);
 }
 
 void CodecSender::onCodecBuffer(struct CodecBuffer& buff)

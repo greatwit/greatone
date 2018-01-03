@@ -22,7 +22,7 @@ using namespace android;
 class JNICameraListen: public CameraListener
 {
 	public:
-		JNICameraListen();
+		JNICameraListen(IVideoCallback *callback);
 		~JNICameraListen() { }
 		sp<Camera> getCamera();
 		
@@ -32,7 +32,7 @@ class JNICameraListen: public CameraListener
 		
 		
 		// connect to camera service
-		int CameraSetup(jobject thiz, jint cameraId);
+		int CameraSetup(jint cameraId);
 		// disconnect from camera service
 		// It's okay to call this when the native camera context is already null.
 		// This handles the case where the user has called release() and the
@@ -46,12 +46,13 @@ class JNICameraListen: public CameraListener
 
 	private:
 		sp<Camera>  mCamera;                // strong reference to native object
+		IVideoCallback *mCallback;
 
 };
 
-JNICameraListen::JNICameraListen():mCamera(NULL)
+JNICameraListen::JNICameraListen(IVideoCallback *callback):mCamera(NULL)
 {
-
+	mCallback = callback;
 }
 
 sp<Camera> JNICameraListen::getCamera()
@@ -107,12 +108,18 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 		if (heapBase != NULL)
 		{
 			const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
+			if(mCallback)
+			{
+				V4L2BUF_t buff;
+				buff.addrVirY = (unsigned int)data;
+				buff.length   = size;
+				mCallback->VideoSource(&buff);
+			}
+			
 			//CodecBaseLib::getInstance()->AddBuffer((char*)data, size);
-			free((void*)data);
-			data = NULL;
 		}
 		
-		ALOGE("postData: off=%ld, size=%d", offset, size);
+		//ALOGE("postData: off=%ld, size=%d", offset, size);
 		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
 	}
 }
@@ -125,7 +132,7 @@ void JNICameraListen::postDataTimestamp(nsecs_t timestamp, int32_t msgType, cons
 
 
 // connect to camera service
-int JNICameraListen::CameraSetup(jobject thiz, jint cameraId)
+int JNICameraListen::CameraSetup(jint cameraId)
 {
 	if(mCamera == NULL)
 		mCamera = Camera::connect(cameraId);
@@ -209,12 +216,12 @@ void JNICameraListen::StopPreview()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 sp<JNICameraListen> gListenContext = NULL;
 
-int CameraSetup(jobject thiz, jint cameraId)
+int CameraSetup(IVideoCallback *callback, jint cameraId)
 {
 	if(gListenContext == NULL)
-		gListenContext = new JNICameraListen();
+		gListenContext = new JNICameraListen(callback);
 	
-	return gListenContext->CameraSetup(thiz, cameraId);
+	return gListenContext->CameraSetup(cameraId);
 }
 
 int CameraRelease()
