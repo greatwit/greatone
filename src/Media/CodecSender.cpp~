@@ -39,7 +39,7 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
 	CodecBaseLib::getInstance()->RegisterBufferCall(this);
 	
-	CameraLib::getInstance()->LoadCameraLib(23);
+	CameraLib::getInstance()->LoadCameraLib(17);
 	CameraLib::getInstance()->CameraSetup(this, cameraId);
 	//mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
