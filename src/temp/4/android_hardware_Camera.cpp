@@ -30,8 +30,10 @@
 #include <camera/Camera.h>
 #include <binder/IMemory.h>
 
-#include "Utils.h"
-#include "Common.h"
+#include <sys/system_properties.h>
+
+//#define ALOGW(...)  __android_log_print(ANDROID_LOG_WARN,	TAG,  __VA_ARGS__)
+//#define ALOGE(...)  __android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
 
 #define TAG "HARDWARE_CAMERA"
 
@@ -230,14 +232,16 @@ void JNICameraContext::copyAndPost(JNIEnv* env, const sp<IMemory>& dataPtr, int 
     jbyteArray obj = NULL;
 
     // allocate Java byte array and copy data
-    if (dataPtr != NULL) {
+    if (dataPtr != NULL) 
+	{
         ssize_t offset;
         size_t size;
         sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
-        ALOGV("copyAndPost: off=%ld, size=%d", offset, size);
+        ALOGW("copyAndPost: off=%ld, size=%d", offset, size);
         uint8_t *heapBase = (uint8_t*)heap->base();
 
-        if (heapBase != NULL) {
+        if (heapBase != NULL) 
+		{
             const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
 
             if (msgType == CAMERA_MSG_RAW_IMAGE) {
@@ -258,10 +262,10 @@ void JNICameraContext::copyAndPost(JNIEnv* env, const sp<IMemory>& dataPtr, int 
                 }
             } 
 			else {
-                ALOGV("Allocating callback buffer");
+                ALOGW("Allocating callback buffer");//here
                 obj = env->NewByteArray(size);
             }
-
+			//
             if (obj == NULL) {
                 ALOGE("Couldn't allocate byte array for JPEG data");
                 env->ExceptionClear();
@@ -1045,5 +1049,34 @@ int registerCamera(JNIEnv *env)
 	return register_android_hardware_Camera(env);
 }
 
+jint JNI_OnLoad(JavaVM* vm, void* reserved) 
+{
+	JNIEnv* env = NULL;
+	jint result = JNI_ERR;
 
+	ALOGW("loading . . .1");
+	
+	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) 
+	{
+		ALOGE("GetEnv failed!");
+		return result;           
+	}
+	
+	if( registerCamera(env) != JNI_OK) 
+	{
+		ALOGE("registerCamera failed");
+	}
+	
+	
+	ALOGW( "loading . . .2");
+	
+	result = JNI_VERSION_1_4;
+	char prop[PROPERTY_VALUE_MAX] = {};
+	if(property_get("prop_name", prop, NULL) != 0)
+	{
+		ALOGW("prop_name %s:", prop);
+	}
+	
+	return result;
+}
 
