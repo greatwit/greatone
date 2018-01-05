@@ -12,7 +12,7 @@ extern "C"
 #endif
 
 
-	int CameraSetup(IVideoCallback *callback, jint cameraId);
+	int CameraSetup(IVideoCallback *callback, jint cameraId, jstring clientPackageName);
 	int CameraRelease();
 	void SetCameraParameter(String8 params8);
 	String8 GetCameraParameter();

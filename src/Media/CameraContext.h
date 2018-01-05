@@ -12,7 +12,7 @@
 
 using namespace android;
 
-typedef int CameraSetup_t(IVideoCallback *callback, jint cameraId);
+typedef int CameraSetup_t(IVideoCallback *callback, jint cameraId, jstring clientPackageName);
 typedef int CameraRelease_t();
 typedef void SetCameraParameter_t(String8 params8);
 typedef String8 GetCameraParameter_t();

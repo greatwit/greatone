@@ -21,7 +21,7 @@ using namespace android;
 class JNICameraListen: public CameraListener
 {
 	public:
-		JNICameraListen(IVideoCallback *callback);
+		JNICameraListen(IVideoCallback *callback); 
 		~JNICameraListen() { }
 		sp<Camera> getCamera();
 		
@@ -31,7 +31,7 @@ class JNICameraListen: public CameraListener
 		
 		
 		// connect to camera service
-		int CameraSetup(jint cameraId);
+		int CameraSetup(jint cameraId, jstring clientPackageName);
 		// disconnect from camera service
 		// It's okay to call this when the native camera context is already null.
 		// This handles the case where the user has called release() and the
@@ -106,11 +106,11 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 		uint8_t *heapBase = (uint8_t*)heap->base();
 		if (heapBase != NULL)
 		{
-			const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
+			//const char* data = reinterpret_cast<const char*>(heapBase + offset);
 			if(mCallback)
 			{
 				V4L2BUF_t buff;
-				buff.addrVirY = (unsigned int)data;
+				buff.addrVirY = (unsigned int)heap->base();
 				buff.length   = size;
 				mCallback->VideoSource(&buff);
 			}
@@ -131,11 +131,21 @@ void JNICameraListen::postDataTimestamp(nsecs_t timestamp, int32_t msgType, cons
 
 
 // connect to camera service
-int JNICameraListen::CameraSetup(jint cameraId)
+int JNICameraListen::CameraSetup(jint cameraId, jstring clientPackageName)//"com.greatmedia"
 {
 	if(mCamera == NULL)
 	{
-		String16 clientName;
+		JNIEnv *env = AndroidRuntime::getJNIEnv();
+		//jstring clientPackageName = env->NewStringUTF("com.greatmedia");
+		
+		    // Convert jstring to String16
+		const char16_t *rawClientName = reinterpret_cast<const char16_t*>(
+										env->GetStringChars(clientPackageName, NULL));
+		jsize rawClientNameLen = env->GetStringLength(clientPackageName);
+		
+		String16 clientName(rawClientName, rawClientNameLen);
+		env->ReleaseStringChars(clientPackageName,
+								reinterpret_cast<const jchar*>(rawClientName));
 		mCamera = Camera::connect(cameraId, clientName, Camera::USE_CALLING_UID);
 	}
 
@@ -218,12 +228,12 @@ void JNICameraListen::StopPreview()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 sp<JNICameraListen> gListenContext = NULL;
 
-int CameraSetup(IVideoCallback *callback, jint cameraId)
+int CameraSetup(IVideoCallback *callback, jint cameraId, jstring clientPackageName)
 {
 	if(gListenContext == NULL)
 		gListenContext = new JNICameraListen(callback);
 	
-	return gListenContext->CameraSetup(cameraId);
+	return gListenContext->CameraSetup(cameraId, clientPackageName);
 }
 
 int CameraRelease()

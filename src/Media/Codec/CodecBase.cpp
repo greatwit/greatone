@@ -146,15 +146,16 @@ status_t CodecBase::addBuffer(char*data, int len)
 	
 
 	err = mCodec->dequeueInputBuffer(&inputBufferIndex, -1);
-	ALOGTEST("addBuffer------------1 err:%d", err);
+	ALOGTEST("addBuffer 1 err:%d inputBufferIndex:%d", err, inputBufferIndex);
 
 	if(err==0)
 	{
 		void* inputChar = (void*)mpInputBufferPoint[inputBufferIndex];
+		ALOGTEST("addBuffer 2 inputChar:%d", inputChar);
 		memcpy(inputChar, data, len);
-	
+		ALOGTEST("addBuffer 22 len:%d", len);
 		err = mCodec->queueInputBuffer(inputBufferIndex, 0, len, 1000000, 0, &errorDetailMsg);
-		ALOGTEST("addBuffer------------2 err:%d", err);
+		ALOGTEST("addBuffer 3 err:%d", err);
 	
 		mCount++;
 	}

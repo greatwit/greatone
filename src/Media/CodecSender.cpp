@@ -1,7 +1,7 @@
 
 #include "CodecSender.h"
 
-
+#include <sys/system_properties.h>
 
 #include "ComDefine.h"
 #define TAG "CodecSender"
@@ -36,11 +36,19 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 		return false;
 	}
 
+
+   //读取sdk版本
+   char szSdkVer[32]={0};
+   __system_property_get("ro.build.version.sdk", szSdkVer);
+   ALOGE("sdk:%d",atoi(szSdkVer));
+	
 	CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
 	CodecBaseLib::getInstance()->RegisterBufferCall(this);
 	
-	CameraLib::getInstance()->LoadCameraLib(23);
-	CameraLib::getInstance()->CameraSetup(this, cameraId);
+	JNIEnv *env = AndroidRuntime::getJNIEnv();
+	jstring clientPackageName = env->NewStringUTF("com.greatmedia");
+	CameraLib::getInstance()->LoadCameraLib(atoi(szSdkVer));
+	CameraLib::getInstance()->CameraSetup(this, cameraId, clientPackageName);
 	//mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
     //if (mCamera->getStatus() != NO_ERROR) {
@@ -129,17 +137,21 @@ bool CodecSender::ConnectDest(std::string ip, short port)
 	return bRes;
 }
 
+//camera frame callback
 void CodecSender::VideoSource(V4L2BUF_t *pBuf)
 {
 	ALOGW("function %s,line:%d len:%d", __FUNCTION__, __LINE__, pBuf->length);
+	CodecBaseLib::getInstance()->AddBuffer((char*)pBuf->addrVirY, pBuf->length);
 }
 
+//codec frame callback
 void CodecSender::onCodecBuffer(struct CodecBuffer& buff)
 {
 	ALOGW("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
 	//mpSender->sendBuffer(buff.buf, buff.size, MIME_H264, MIME_H264_LEN, 0);
 }
 
+//upload camera framebuffer
 void CodecSender::AddDecodecSource(char *data, int len)
 {
 	//mCodec->addBuffer(data, len);
