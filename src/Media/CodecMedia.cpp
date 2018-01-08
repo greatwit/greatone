@@ -21,13 +21,14 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/MediaErrors.h>
 
+#include <sys/system_properties.h>
+
 #include "media_Utils.h"
 
 #include "FileDeCodec.h"
 #include "FileEnCodec.h"
 #include "CodecReceiver.h"
 #include "CodecSender.h"
-
 
 
 #include "CodecMedia.h"
@@ -196,6 +197,12 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 {
 	ALOGE("Enter:StartCodecSender----------->1");
 	
+	//读取sdk版本
+	char szSdkVer[32]={0};
+	__system_property_get("ro.build.version.sdk", szSdkVer);
+	ALOGE("sdk:%d",atoi(szSdkVer));
+	CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
+	
 	sp<AMessage> format;
 	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
 
@@ -246,23 +253,13 @@ static jboolean StopCameraVideo(JNIEnv *env, jobject)
 static jstring GetCameraParameter(JNIEnv *env, jobject)
 {
     ALOGE("GetCameraParameter");
-
-    String8 params8 = mpCodecSend->GetCameraParameter();
-    if (params8.isEmpty()) {
-        ALOGE("getParameters failed (empty parameters)");
-    }
-    return env->NewStringUTF(params8.string());
+	
+    return mpCodecSend->GetCameraParameter();
 }
 
 static jboolean SetCameraParameter(JNIEnv *env, jobject, jstring params)
 {
-	const jchar* str = env->GetStringCritical(params, 0);
-    String8 params8;
-    if (params) {
-        params8 = String8(reinterpret_cast<const char16_t*>(str), env->GetStringLength(params)); //str is for android4,cast is for android6
-        env->ReleaseStringCritical(params, str);
-    }
-    mpCodecSend->SetCameraParameter(params8);
+    mpCodecSend->SetCameraParameter(params);
 	return true;
 }
 
@@ -271,6 +268,7 @@ static jboolean CodecSenderData(JNIEnv *env, jobject, jbyteArray byteData, jint 
 	jbyte* cameraFrame = env->GetByteArrayElements(byteData, NULL);
 	mpCodecSend->AddDecodecSource(reinterpret_cast<char*>(cameraFrame), len);
 	env->ReleaseByteArrayElements(byteData, cameraFrame, JNI_ABORT);
+	
 	return true;
 }
 
@@ -280,8 +278,11 @@ static jboolean StopCodecSender(JNIEnv *env, jobject)
 	mpCodecSend->DeInit();
 	delete mpCodecSend;
 	mpCodecSend = NULL;
+	
 	return true;
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////recerver//////////////////////////////////////////////////////////////
 
@@ -338,7 +339,7 @@ static jboolean LoadBaseLib(JNIEnv *env, jobject obj, int version)
 
 static JNINativeMethod gMethods[] = 
 {
-	{ "LoadBaseLib", "(I)Z", (void *)LoadBaseLib },
+	//{ "LoadBaseLib", "(I)Z", (void *)LoadBaseLib },
 	
 	{ "StopVideoSend", "()Z", (void *)StopVideoSend },
 	

@@ -81,14 +81,14 @@ bool CodecSender::DeInit()
 }
 
 
-void CodecSender::SetCameraParameter(String8 params8)
+void CodecSender::SetCameraParameter(jstring params)
 {
-	CameraLib::getInstance()->SetCameraParameter(params8);
+	CameraLib::getInstance()->SetCameraParameter(params);
 }
 
-String8 CodecSender::GetCameraParameter()
+jstring CodecSender::GetCameraParameter()
 {
-	return CameraLib::getInstance()->GetCameraParameter();
+    return CameraLib::getInstance()->GetCameraParameter();
 }
 
 bool CodecSender::StartVideo(const sp<Surface> &cameraSurf)

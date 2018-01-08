@@ -14,8 +14,8 @@ using namespace android;
 
 typedef int CameraSetup_t(IVideoCallback *callback, jint cameraId, jstring clientPackageName);
 typedef int CameraRelease_t();
-typedef void SetCameraParameter_t(String8 params8);
-typedef String8 GetCameraParameter_t();
+typedef void SetCameraParameter_t(jstring params);
+typedef jstring GetCameraParameter_t();
 typedef void StartPreview_t(const sp<Surface> &surface);
 typedef void StopPreview_t();
 

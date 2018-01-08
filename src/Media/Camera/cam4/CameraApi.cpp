@@ -39,8 +39,8 @@ class JNICameraListen: public CameraListener
 		// finalizer is invoked later.
 		int CameraRelease();
 
-		void SetCameraParameter(String8 params8);
-		String8 GetCameraParameter();
+		void SetCameraParameter(jstring params);
+		jstring GetCameraParameter();
 		void StartPreview(const sp<Surface> &surface);
 		void StopPreview();
 
@@ -104,14 +104,26 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 		size_t size;
 		sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
 		
-		uint8_t *heapBase = (uint8_t*)heap->base();
-		if (heapBase != NULL)
+		int fd = heap->getHeapID();
+		void* base = heap->getBase();
+		ALOGE("postData: off=%ld, size=%d hid:%d base:%d", heap->getOffset(), heap->getSize(), fd, base);
+		
+		void* hBase = mmap(0, size, PROT_READ, MAP_SHARED, fd, offset);  
+		//void* base = heap->getBase();
+		//uint_t f = heap->getFlags();
+		//int os = heap->getOffset();
+		//int sz = heap->getSize();
+		//ALOGE("postData: off=%ld, size=%d heapid:%d base:%d flag:%d  offset:%d heapsize:%s", offset, size, id, base, f, os, sz);
+		
+		
+		//uint8_t *heapBase = (uint8_t*)heap->base();
+		//if (heapBase != NULL)
 		{
-			const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
+			//const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
 			if(mCallback)
 			{
 				V4L2BUF_t buff;
-				buff.addrVirY = (unsigned int)data;
+				buff.addrVirY = (unsigned int)hBase;
 				buff.length   = size;
 				mCallback->VideoSource(&buff);
 			}
@@ -120,7 +132,7 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 		}
 		
 		//ALOGE("postData: off=%ld, size=%d", offset, size);
-		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
+		//mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
 	}
 }
 
@@ -154,7 +166,7 @@ int JNICameraListen::CameraSetup(jint cameraId)
 	//	gListenContext = new JNICameraListen(camera);
 
     mCamera->setListener(this);
-	mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
+	mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_CAMERA );
 
 	return 0;
 }
@@ -182,16 +194,30 @@ int JNICameraListen::CameraRelease()
 	return 0;
 }
 
-void JNICameraListen::SetCameraParameter(String8 params8)
+void JNICameraListen::SetCameraParameter(jstring params)
 {
-	if (mCamera->setParameters(params8) != NO_ERROR) {
-		ALOGE("Camera setParameters failed");
+	String8 params8;
+	if (params) {
+		JNIEnv *env = AndroidRuntime::getJNIEnv();
+		const jchar* str = env->GetStringCritical(params, 0);
+		params8 = String8(/*reinterpret_cast<const char16_t*>*/(str), env->GetStringLength(params)); //str is for android4,cast is for android6
+		env->ReleaseStringCritical(params, str);
+		
+		if (mCamera->setParameters(params8) != NO_ERROR) {
+			ALOGE("Camera setParameters failed");
+		}
 	}
 }
 
-String8 JNICameraListen::GetCameraParameter()
+jstring JNICameraListen::GetCameraParameter()
 {
-	return mCamera->getParameters();
+	String8 params8 = mCamera->getParameters();
+	if (params8.isEmpty()) {
+        ALOGE("getParameters failed (empty parameters)");
+		return NULL;
+    }
+	JNIEnv *env = AndroidRuntime::getJNIEnv();
+    return env->NewStringUTF(params8.string());
 }
 
 void JNICameraListen::StartPreview(const sp<Surface> &surface)
@@ -238,13 +264,13 @@ int CameraRelease()
 	return -1;
 }
 
-void SetCameraParameter(String8 params8)
+void SetCameraParameter(jstring params)
 {
 	if(gListenContext != NULL)
-		gListenContext->SetCameraParameter(params8);
+		gListenContext->SetCameraParameter(params);
 }
 
-String8 GetCameraParameter()
+jstring GetCameraParameter()
 {
 	return gListenContext->GetCameraParameter();
 }

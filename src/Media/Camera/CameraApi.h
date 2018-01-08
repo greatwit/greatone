@@ -14,8 +14,8 @@ extern "C"
 
 	int CameraSetup(IVideoCallback *callback, jint cameraId, jstring clientPackageName);
 	int CameraRelease();
-	void SetCameraParameter(String8 params8);
-	String8 GetCameraParameter();
+	void SetCameraParameter(jstring params);
+	jstring GetCameraParameter();
 	void StartPreview(const sp<Surface> &surface);
 	void StopPreview();
 

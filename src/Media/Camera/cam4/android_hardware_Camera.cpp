@@ -233,7 +233,11 @@ void JNICameraContext::copyAndPost(JNIEnv* env, const sp<IMemory>& dataPtr, int 
         sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
         ALOGV("copyAndPost: off=%ld, size=%d", offset, size);
         uint8_t *heapBase = (uint8_t*)heap->base();
-
+		int i = heap->getHeapID();
+		void* b = heap->getBase();
+		uint_t f = heap->getFlags();
+		int os = heap->getOffset();
+		//const char* dev = heap->getDevice();
         if (heapBase != NULL) {
             const jbyte* data = reinterpret_cast<const jbyte*>(heapBase + offset);
 

@@ -38,8 +38,8 @@ class JNICameraListen: public CameraListener
 		// finalizer is invoked later.
 		int CameraRelease();
 
-		void SetCameraParameter(String8 params8);
-		String8 GetCameraParameter();
+		void SetCameraParameter(jstring params);
+		jstring GetCameraParameter();
 		void StartPreview(const sp<Surface> &surface);
 		void StopPreview();
 
@@ -194,16 +194,30 @@ int JNICameraListen::CameraRelease()
 	return 0;
 }
 
-void JNICameraListen::SetCameraParameter(String8 params8)
+void JNICameraListen::SetCameraParameter(jstring params)
 {
-	if (mCamera->setParameters(params8) != NO_ERROR) {
-		ALOGE("Camera setParameters failed");
+	String8 params8;
+	if (params) {
+		JNIEnv *env = AndroidRuntime::getJNIEnv();
+		const jchar* str = env->GetStringCritical(params, 0);
+		params8 = String8(reinterpret_cast<const char16_t*>(str), env->GetStringLength(params)); //str is for android4,cast is for android6
+		env->ReleaseStringCritical(params, str);
+		
+		if (mCamera->setParameters(params8) != NO_ERROR) {
+			ALOGE("Camera setParameters failed");
+		}
 	}
 }
 
-String8 JNICameraListen::GetCameraParameter()
+jstring JNICameraListen::GetCameraParameter()
 {
-	return mCamera->getParameters();
+	String8 params8 = mCamera->getParameters();
+	if (params8.isEmpty()) {
+        ALOGE("getParameters failed (empty parameters)");
+		return NULL;
+    }
+	JNIEnv *env = AndroidRuntime::getJNIEnv();
+    return env->NewStringUTF(params8.string());
 }
 
 void JNICameraListen::StartPreview(const sp<Surface> &surface)
