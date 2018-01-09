@@ -137,10 +137,14 @@ static jboolean StartFileEncoder(JNIEnv *env, jobject,
 {
 	ALOGE("Enter:StartFileEncoder----------->1");
 	
+	//读取sdk版本
+	char szSdkVer[32]={0};
+	__system_property_get("ro.build.version.sdk", szSdkVer);
+	ALOGE("sdk:%d",atoi(szSdkVer));
+	CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
+	
 	sp<AMessage> format;
 	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
-
-	
 
 	sp<ICrypto> crypto;
 	if (jcrypto != NULL) {
@@ -197,55 +201,64 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 {
 	ALOGE("Enter:StartCodecSender----------->1");
 	
-	//读取sdk版本
-	char szSdkVer[32]={0};
-	__system_property_get("ro.build.version.sdk", szSdkVer);
-	ALOGE("sdk:%d",atoi(szSdkVer));
-	CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
-	
-	sp<AMessage> format;
-	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
-
-	
-
-	sp<ICrypto> crypto;
-	if (jcrypto != NULL) {
-	//crypto = JCrypto::GetCrypto(env, jcrypto);
-	}
-	
-	mpCodecSend = new CodecSender();
-	ALOGE("Enter:StartCodecSender----------->2");
-
-	if(jsurface!=NULL)
+	if(mpCodecSend == NULL)
 	{
-		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-		mpCodecSend->CreateCodec(thiz, format, surface, crypto, flags, localport, 0);
-		ALOGE("Enter:StartCodecSender----------->31");
-	}else
-	{
-		mpCodecSend->CreateCodec(thiz, format, NULL, crypto, flags, localport, 0);
-		ALOGE("Enter:StartCodecSender----------->32");
+		//读取sdk版本
+		char szSdkVer[32]={0};
+		__system_property_get("ro.build.version.sdk", szSdkVer);
+		ALOGE("sdk:%d",atoi(szSdkVer));
+		CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
+		
+		sp<AMessage> format;
+		status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
+
+		
+
+		sp<ICrypto> crypto;
+		if (jcrypto != NULL) {
+		//crypto = JCrypto::GetCrypto(env, jcrypto);
+		}
+		
+		mpCodecSend = new CodecSender();
+		ALOGE("Enter:StartCodecSender----------->2");
+
+		if(jsurface!=NULL)
+		{
+			sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+			mpCodecSend->CreateCodec(thiz, format, surface, crypto, flags, localport, 0);
+			ALOGE("Enter:StartCodecSender----------->31");
+		}else
+		{
+			mpCodecSend->CreateCodec(thiz, format, NULL, crypto, flags, localport, 0);
+			ALOGE("Enter:StartCodecSender----------->32");
+		}
+
+		const char *pAddr = env->GetStringUTFChars(destip, NULL);
+		mpCodecSend->ConnectDest(pAddr, destport);
+		env->ReleaseStringUTFChars(destip, pAddr);
+		
+		return true;
 	}
 
-	const char *pAddr = env->GetStringUTFChars(destip, NULL);
-	mpCodecSend->ConnectDest(pAddr, destport);
-	env->ReleaseStringUTFChars(destip, pAddr);
-	
-	
-    return true;
+    return false;
 }
 
 static jboolean StartCameraVideo(JNIEnv *env, jobject thiz, jobject jsurface)
 {
-	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-	mpCodecSend->StartVideo(surface);
-	ALOGE("StartCameraVideo");
-	return true;
+	if(mpCodecSend)
+	{
+		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
+		mpCodecSend->StartVideo(surface);
+		ALOGE("StartCameraVideo");
+		return true;
+	}
+	return false;
 }
 
 static jboolean StopCameraVideo(JNIEnv *env, jobject)
 {
-	mpCodecSend->StopVideo();
+	if(mpCodecSend)
+		mpCodecSend->StopVideo();
 	ALOGE("StopCameraVideo");
 	return true;
 }
@@ -253,33 +266,44 @@ static jboolean StopCameraVideo(JNIEnv *env, jobject)
 static jstring GetCameraParameter(JNIEnv *env, jobject)
 {
     ALOGE("GetCameraParameter");
-	
-    return mpCodecSend->GetCameraParameter();
+	if(mpCodecSend)
+		return mpCodecSend->GetCameraParameter();
+	else
+		return NULL;
 }
 
 static jboolean SetCameraParameter(JNIEnv *env, jobject, jstring params)
 {
-    mpCodecSend->SetCameraParameter(params);
+	if(mpCodecSend)
+		mpCodecSend->SetCameraParameter(params);
 	return true;
 }
 
 static jboolean CodecSenderData(JNIEnv *env, jobject, jbyteArray byteData, jint len)
 {
-	jbyte* cameraFrame = env->GetByteArrayElements(byteData, NULL);
-	mpCodecSend->AddDecodecSource(reinterpret_cast<char*>(cameraFrame), len);
-	env->ReleaseByteArrayElements(byteData, cameraFrame, JNI_ABORT);
+	if(mpCodecSend)
+	{
+		jbyte* cameraFrame = env->GetByteArrayElements(byteData, NULL);
+		mpCodecSend->AddDecodecSource(reinterpret_cast<char*>(cameraFrame), len);
+		env->ReleaseByteArrayElements(byteData, cameraFrame, JNI_ABORT);
 	
-	return true;
+		return true;
+	}
+	return false;
 }
 
 static jboolean StopCodecSender(JNIEnv *env, jobject)
 {
-	mpCodecSend->StopVideo();
-	mpCodecSend->DeInit();
-	delete mpCodecSend;
-	mpCodecSend = NULL;
-	
-	return true;
+	if(mpCodecSend)
+	{
+		mpCodecSend->StopVideo();
+		mpCodecSend->DeInit();
+		delete mpCodecSend;
+		mpCodecSend = NULL;
+		
+		return true;
+	}
+	return false;
 }
 
 
@@ -293,18 +317,24 @@ static jboolean StartCodecRecver(JNIEnv *env, jobject,
 {
 	ALOGE("Enter:StartCodecRecver----------->1");
 	
+	//读取sdk版本
+	char szSdkVer[32]={0};
+	__system_property_get("ro.build.version.sdk", szSdkVer);
+	ALOGE("sdk:%d",atoi(szSdkVer));
+	CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
+	
 	sp<AMessage> format;
 	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
-
+	ALOGE("Enter:StartCodecRecver----------->2");
 	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-
+	
 	sp<ICrypto> crypto;
 	if (jcrypto != NULL) {
 	//crypto = JCrypto::GetCrypto(env, jcrypto);
 	}
 	
 	mpCodecRecv = new CodecReceiver();
-	ALOGE("Enter:StartCodecRecver----------->2");
+	
 	mpCodecRecv->CreateCodec(format, surface, crypto, flags, recvport);
 	ALOGE("Enter:StartCodecRecver----------->3");
 
@@ -426,11 +456,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	if( registerNatives(env) != JNI_OK) 
 	{
 		ALOGE("can't load ffmpeg");
-	}
-	
-	//if( registerCamera(env) != JNI_OK) 
-	{
-		ALOGE("registerCamera failed");
 	}
 	
 	

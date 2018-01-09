@@ -108,7 +108,7 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 		void* base = heap->getBase();
 		ALOGE("postData: off=%ld, size=%d hid:%d base:%d", heap->getOffset(), heap->getSize(), fd, base);
 		
-		void* hBase = mmap(0, size, PROT_READ, MAP_SHARED, fd, offset);  
+		//void* hBase = mmap(0, size, PROT_READ, MAP_SHARED, fd, offset);  
 		//void* base = heap->getBase();
 		//uint_t f = heap->getFlags();
 		//int os = heap->getOffset();
@@ -123,7 +123,7 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 			if(mCallback)
 			{
 				V4L2BUF_t buff;
-				buff.addrVirY = (unsigned int)hBase;
+				buff.addrVirY = (unsigned int)heap->base();
 				buff.length   = size;
 				mCallback->VideoSource(&buff);
 			}
