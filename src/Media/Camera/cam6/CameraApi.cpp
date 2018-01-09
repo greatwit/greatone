@@ -136,13 +136,11 @@ int JNICameraListen::CameraSetup(jint cameraId, jstring clientPackageName)//"com
 	if(mCamera == NULL)
 	{
 		JNIEnv *env = AndroidRuntime::getJNIEnv();
-		//jstring clientPackageName = env->NewStringUTF("com.greatmedia");
-		
-		    // Convert jstring to String16
+		// Convert jstring to String16
 		const char16_t *rawClientName = reinterpret_cast<const char16_t*>(
 										env->GetStringChars(clientPackageName, NULL));
 		jsize rawClientNameLen = env->GetStringLength(clientPackageName);
-		
+	
 		String16 clientName(rawClientName, rawClientNameLen);
 		env->ReleaseStringChars(clientPackageName,
 								reinterpret_cast<const jchar*>(rawClientName));
@@ -239,7 +237,7 @@ void JNICameraListen::StopPreview()
     mCamera->stopPreview();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////api for opendl//////////////////////////////////////////////////////////////////////////
 sp<JNICameraListen> gListenContext = NULL;
 
 int CameraSetup(IVideoCallback *callback, jint cameraId, jstring clientPackageName)
@@ -262,15 +260,18 @@ int CameraRelease()
 	return -1;
 }
 
-void SetCameraParameter(String8 params8)
+void SetCameraParameter(jstring params)
 {
 	if(gListenContext != NULL)
-		gListenContext->SetCameraParameter(params8);
+		gListenContext->SetCameraParameter(params);
 }
 
-String8 GetCameraParameter()
+jstring GetCameraParameter()
 {
-	return gListenContext->GetCameraParameter();
+	if(gListenContext != NULL)
+		return gListenContext->GetCameraParameter();
+	else
+		return NULL;
 }
 
 void StartPreview(const sp<Surface> &surface)
@@ -284,4 +285,6 @@ void StopPreview()
 	if(gListenContext != NULL)
 		gListenContext->StopPreview();
 }
+
+
 
