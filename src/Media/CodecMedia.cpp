@@ -23,8 +23,6 @@
 
 #include <sys/system_properties.h>
 
-#include "media_Utils.h"
-
 #include "FileDeCodec.h"
 #include "FileEnCodec.h"
 #include "CodecReceiver.h"
@@ -279,6 +277,13 @@ static jboolean SetCameraParameter(JNIEnv *env, jobject, jstring params)
 	return true;
 }
 
+static jboolean SetDisplayOrientation(JNIEnv *env, jobject, jint value)
+{
+	if(mpCodecSend)
+		mpCodecSend->SetDisplayOrientation(value);
+	return true;
+}
+
 static jboolean CodecSenderData(JNIEnv *env, jobject, jbyteArray byteData, jint len)
 {
 	if(mpCodecSend)
@@ -396,6 +401,7 @@ static JNINativeMethod gMethods[] =
 	{ "StartCameraVideo", "(Landroid/view/Surface;)Z", (void *)StartCameraVideo },
 	{ "GetCameraParameter", "()Ljava/lang/String;", (void *)GetCameraParameter },
 	{ "SetCameraParameter", "(Ljava/lang/String;)Z", (void *)SetCameraParameter },
+	{ "SetDisplayOrientation", "(I)Z", (void *)SetDisplayOrientation },
 	{ "CodecSenderData", "([BI)Z", (void *)CodecSenderData },
 	
 	//

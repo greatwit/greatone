@@ -8,24 +8,21 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
     $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/*.c*)) \
-	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Camera/*.c*)) \
-	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Media/Audio/*.c*)) \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/RtpTrans/*.c*)) \
-    	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/RtpTrans/rtplib/jrtplib/*.c*)) \
+    $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/RtpTrans/rtplib/jrtplib/*.c*)) \
 	$(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/Common/*.c*))
 
 	#JCrypto rely libbinder libmedia
 	#libgui:need for android6 camera graphic buffer
 LOCAL_SHARED_LIBRARIES := \
-    	libandroid_runtime \
-	libnativehelper \
-	libgui \
-	liblog \
-	libbinder \
-    	libutils \
-    	libcutils \
-	libcamera_client \
-	libdl
+						libandroid_runtime \
+						libnativehelper \
+						libgui \
+						liblog \
+						libbinder \
+						libutils \
+						libcutils \
+						libdl
 
 
 LOCAL_C_INCLUDES += \
@@ -35,9 +32,7 @@ LOCAL_C_INCLUDES += \
     frameworks/native/include/media/openmax \
 	$(LOCAL_PATH)/Common \
 	$(LOCAL_PATH)/Media \
-	$(LOCAL_PATH)/Media/Codec \
 	$(LOCAL_PATH)/Media/Camera \
-	$(LOCAL_PATH)/Media/include \
 	$(LOCAL_PATH)/RtpTrans	\
 	$(LOCAL_PATH)/RtpTrans/rtplib/jrtplib	\
     $(call include-path-for, libhardware)/hardware \

@@ -80,6 +80,10 @@ bool CodecSender::DeInit()
 	return true;
 }
 
+void CodecSender::SetDisplayOrientation(int value)
+{
+	CameraLib::getInstance()->SetDisplayOrientation(value);
+}
 
 void CodecSender::SetCameraParameter(jstring params)
 {
@@ -93,14 +97,12 @@ jstring CodecSender::GetCameraParameter()
 
 bool CodecSender::StartVideo(const sp<Surface> &cameraSurf)
 {
-
 	//mCodec->startCodec();
 	CodecBaseLib::getInstance()->StartCodec();
 	
 	CameraLib::getInstance()->StartPreview(cameraSurf);
 
 	VIDEOLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
-
 
 	return true; 
 }

@@ -6,6 +6,8 @@
 
 using namespace android;
 
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -18,6 +20,7 @@ extern "C"
 	jstring GetCameraParameter();
 	void StartPreview(const sp<Surface> &surface);
 	void StopPreview();
+	void SetDisplayOrientation(int value);
 
 #ifdef __cplusplus
 }

@@ -18,6 +18,7 @@ typedef void SetCameraParameter_t(jstring params);
 typedef jstring GetCameraParameter_t();
 typedef void StartPreview_t(const sp<Surface> &surface);
 typedef void StopPreview_t();
+typedef void SetDisplayOrientation_t(int value);
 
 namespace android 
 {
@@ -37,6 +38,7 @@ class CameraLib
 		GetCameraParameter_t* 		GetCameraParameter;
 		StartPreview_t*				StartPreview;
 		StopPreview_t*				StopPreview;
+		SetDisplayOrientation_t*	SetDisplayOrientation;
 
 		
 	private:

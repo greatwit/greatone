@@ -46,6 +46,7 @@ class CodecSender : public ICodecCallback, public IVideoCallback
 		
 		void SetCameraParameter(jstring params);
 		jstring GetCameraParameter();
+		void SetDisplayOrientation(int value);
 		
 		bool ConnectDest(std::string ip, short port);
 		bool StartVideo(const sp<Surface> &cameraSurface);

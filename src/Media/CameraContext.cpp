@@ -82,6 +82,7 @@ namespace android
 		GetCameraParameter 				= (GetCameraParameter_t*)dlsym(mLibHandle, "GetCameraParameter");
 		StartPreview 					= (StartPreview_t*)dlsym(mLibHandle, "StartPreview");
 		StopPreview 					= (StopPreview_t*)dlsym(mLibHandle, "StopPreview");
+		SetDisplayOrientation			= (SetDisplayOrientation_t*)dlsym(mLibHandle, "SetDisplayOrientation");
 		
 		
 		const char *err = dlerror();
