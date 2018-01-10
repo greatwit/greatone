@@ -90,7 +90,7 @@ void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, came
 		}
 		
 		//ALOGE("postData: off=%ld, size=%d", offset, size);
-		//mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
+		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_BARCODE_SCANNER);
 	}
 }
 
