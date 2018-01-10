@@ -137,6 +137,7 @@ jstring JNICameraListen::getParameters()
     return env->NewStringUTF(params8.string());
 }
 
+
 void JNICameraListen::stopPreview()
 {
     ALOGV("stopPreview");

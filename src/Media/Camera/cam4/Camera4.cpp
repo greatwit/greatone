@@ -1,6 +1,4 @@
 
-
-
 #include "CameraListen.h"
 #define TAG "Camera4"
 
@@ -50,4 +48,19 @@ void JNICameraListen::setParameters(jstring params)
 		}
 	}
 }
+
+void JNICameraListen::startPreview(const sp<Surface> &surface)
+{
+    ALOGV("startPreview");
+
+	if(surface!=NULL && mCamera != NULL)
+	{
+		if (mCamera->setPreviewDisplay(surface) != NO_ERROR)
+			ALOGE("Camera setPreviewDisplay failed");
+	
+		if (mCamera->startPreview() != NO_ERROR)
+			ALOGE( "startPreview failed");
+	}
+}
+
 

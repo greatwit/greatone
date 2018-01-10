@@ -9,7 +9,7 @@
 #include <cutils/properties.h>
 #include <utils/Vector.h>
 
-
+#include <gui/SurfaceTexture.h>
 #include <gui/Surface.h>
 #include <camera/Camera.h>
 #include <binder/IMemory.h>
