@@ -36,29 +36,6 @@ CodecBase::~CodecBase()
     }
 }
 
-status_t CodecBase::CreateCodec(const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
-{
-	status_t err;
-
-	ALOGTEST("function %s,line:%d configure...1", __FUNCTION__, __LINE__);
-	
-	#if HEIGHT_VERSION
-		sp<IGraphicBufferProducer> bufferProducer;
-		if(surface!=NULL)
-			bufferProducer = surface->getIGraphicBufferProducer();
-		err = mCodec->configure(format, bufferProducer, crypto, flags);
-		ALOGTEST("function %s,line:%d configure...2 err:%d", __FUNCTION__, __LINE__, err);
-	#else
-		sp<ISurfaceTexture> surfaceTexture;
-		if(surface!=NULL)
-			surfaceTexture = surface->getSurfaceTexture();
-		err = mCodec->configure(format, surfaceTexture, crypto, flags);
-		ALOGTEST("function %s,line:%d configure...2 err:%d", __FUNCTION__, __LINE__, err);
-	#endif
-
-	return err;
-}
-
 void  	 CodecBase::registerBufferCall(ICodecCallback *call)
 {
 	mpBufferCall = call;
@@ -144,7 +121,6 @@ status_t CodecBase::addBuffer(char*data, int len)
 	size_t inputBufferIndex = 0, outputBufferIndex = 0;
 	AString errorDetailMsg;
 	
-
 	err = mCodec->dequeueInputBuffer(&inputBufferIndex, -1);
 	ALOGTEST("addBuffer 1 err:%d inputBufferIndex:%d", err, inputBufferIndex);
 
@@ -189,11 +165,7 @@ status_t CodecBase::getCodecBuffer()
 			mpBufferCall->onCodecBuffer(mBufferINfo);
 		}
 
-		#if HEIGHT_VERSION
-			mCodec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
-		#else
-			mCodec->releaseOutputBuffer(outputBufferIndex, true);
-		#endif
+		mCodec->releaseOutputBuffer(outputBufferIndex, true, false, 0);
 
 		err = mCodec->dequeueOutputBuffer(mpEnv, &outputBufferIndex, offset, size, timeUs, flags, 12000);
 		if(err==0)

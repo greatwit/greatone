@@ -172,6 +172,13 @@ status_t JMediaCodec::releaseOutputBuffer(size_t index, bool render) {
         : mCodec->releaseOutputBuffer(index);
 }
 
+status_t JMediaCodec::releaseOutputBuffer(size_t index, bool render, bool updatePTS, int64_t timestampNs)
+{
+	(void*)updatePTS;
+	(void*)timestampNs;
+	return releaseOutputBuffer(index, render);
+}
+
 status_t JMediaCodec::getOutputFormat(JNIEnv *env, jobject *format) const {
     sp<AMessage> msg;
     status_t err;
