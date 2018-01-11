@@ -19,7 +19,7 @@ class ICodecCallback
 {
 	public:
 		virtual ~ICodecCallback(){}
-		virtual void onCodecBuffer(struct CodecBuffer& buff){}
+		virtual void onCodecBuffer(struct CodecBuffer& buff){(void)buff;}
 };
 
 namespace android 
