@@ -144,17 +144,18 @@ void CodecSender::VideoSource(V4L2BUF_t *pBuf)
 {
 	ALOGW("function %s,line:%d len:%d", __FUNCTION__, __LINE__, pBuf->length);
 	char* data = (char*)pBuf->addrVirY;
-	/*
-	int uvlen = pBuf->length/2;
-	int ylen  = pBuf->length;
+	
+	int ylen  = pBuf->length*2/3;
+	int uvlen = ylen/2;
+	char tmp  = '/0';
 	for(int i=0;i<uvlen;)
 	{
-		char tmp = data[ylen+i];
-		data[ylen+i] = data[ylen+i+1];
-		data[ylen+i+1] = tmp;
+		tmp 			= data[ylen+i];
+		data[ylen+i] 	= data[ylen+i+1];
+		data[ylen+i+1] 	= tmp;
 		i+=2;
 	}
-	*/
+	
 	CodecBaseLib::getInstance()->AddBuffer(data, pBuf->length);
 }
 
