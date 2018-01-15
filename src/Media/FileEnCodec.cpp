@@ -7,9 +7,6 @@
 #define TAG "FileEnCodec"
 
 
-#define ALOGTEST(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
-#define ALOGE(...)		__android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
-
 
 int intToBytes(int val , char*outData) 
 {   
@@ -25,13 +22,13 @@ FileEnCodec::FileEnCodec()
 			:mbRunning(false)
 			,mFile(NULL)
 {
-	ALOGV("SenderServer::SenderServer() construct.");
+	GLOGV("function %s,line:%d construct.",__FUNCTION__,__LINE__);
 	mSpsPpsLen = 0;
 }
 
 FileEnCodec::~FileEnCodec()
 {
-	ALOGV("SenderServer, Destructor");
+	GLOGV("function %s,line:%d Destructor.",__FUNCTION__,__LINE__);
 }
 
 
@@ -69,7 +66,7 @@ bool FileEnCodec::StartVideo(int deivceid)
 	//mCodec->startCodec();
 	CodecBaseLib::getInstance()->StartCodec();
 
-	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
 
 
 	return true;
@@ -78,19 +75,19 @@ bool FileEnCodec::StartVideo(int deivceid)
 bool FileEnCodec::StopVideo()
 {
 
-	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	//mCodec->stopCodec();
 	CodecBaseLib::getInstance()->StopCodec();
 	
-	VIDEOLOGD("TAG 1,function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
 	return true;
 }
 
 void FileEnCodec::onCodecBuffer(struct CodecBuffer& buff)
 {
-	ALOGTEST("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
+	GLOGW("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
 	int size = buff.size;
 	char lenBuf[4] = {0};
 	intToBytes(size, lenBuf);

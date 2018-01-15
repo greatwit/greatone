@@ -25,7 +25,7 @@ bool RtpReceive::initSession(short localPort)
 	int packet_num = 0;
 	mLocalPort = localPort;
 
-	ALOGV("TAG :function %s,line:%d init localport:%d ",__FUNCTION__,__LINE__, mLocalPort);
+	GLOGV("function %s,line:%d init localport:%d ",__FUNCTION__,__LINE__, mLocalPort);
 
 	RTPSessionParams sessionparams;
 	RTPUDPv4TransmissionParams transparams;
@@ -45,7 +45,7 @@ bool RtpReceive::initSession(short localPort)
 	}
 	else
 	{
-		ALOGE("function: %s, line: %d, mSession.Create failed error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, mSession.Create failed error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 
@@ -69,9 +69,9 @@ void RtpReceive::registerCallback(IReceiveCallback *base)
 bool RtpReceive::startThread()
 {
 	mRunning = true;
-	ALOGD("TAG 11:function %s,line:%d",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
 	run("RtpReceive", PRIORITY_URGENT_DISPLAY);
-	ALOGD("TAG 12:function %s,line:%d",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
 
 	return true;
 }
@@ -99,7 +99,7 @@ bool RtpReceive::connect(std::string sDestIp, short destPort)
 	uint32_t uiDestip = inet_addr(sDestIp.c_str());
 	if (uiDestip == INADDR_NONE)
 	{
-		ALOGE("TAG 12:function %s,line:%d Bad IP address specified",__FUNCTION__,__LINE__);
+		GLOGE("function %s,line:%d Bad IP address specified",__FUNCTION__,__LINE__);
 		return false;
 	}
 
@@ -111,7 +111,7 @@ bool RtpReceive::connect(std::string sDestIp, short destPort)
 	iStatus = mSession.AddDestination(mDestAddr);
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 
@@ -122,9 +122,9 @@ bool RtpReceive::connect(std::string sDestIp, short destPort)
 bool RtpReceive::disConnect()
 {
 	mSession.DeleteDestination(mDestAddr);
-	ALOGW("TAG 12:function %s,line:%d RtpSender::disConnect 1",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d RtpSender::disConnect 1",__FUNCTION__,__LINE__);
 	mSession.ClearDestinations();
-	ALOGW("TAG 12:function %s,line:%d RtpSender::disConnect 2",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d RtpSender::disConnect 2",__FUNCTION__,__LINE__);
 	return true;
 }
 
@@ -134,17 +134,17 @@ bool RtpReceive::sendBuffer(void*buff, int dataLen, char*hdrextdata, int numhdre
 
 	if(dataLen>=MAX_PACKET_SIZE)
 	{
-		ALOGE("function: %s, line: %d, data len big than max_packet_size.", __FUNCTION__, __LINE__);
+		GLOGE("function: %s, line: %d, data len big than max_packet_size.", __FUNCTION__, __LINE__);
 		return false;
 	}
 
-	TESTLOGW("function: %s, line: %d, ========================3 len:%d", __FUNCTION__, __LINE__, dataLen);
+	GLOGW("function: %s, line: %d, ========================3 len:%d", __FUNCTION__, __LINE__, dataLen);
 	iStatus = mSession.SendPacketEx((void *)buff, dataLen, 0, hdrextdata, numhdrextwords); 
-	TESTLOGW("function: %s, line: %d, ========================4 ", __FUNCTION__, __LINE__);
+	GLOGW("function: %s, line: %d, ========================4 ", __FUNCTION__, __LINE__);
 
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 
@@ -178,7 +178,7 @@ bool RtpReceive::threadLoop()
 							return false;
 					}
 					
-					ALOGD("got packet! GetExtensionData:%s payloadlength:%d id:%d count:%d source ip:%s \n",
+					GLOGD("got packet! GetExtensionData:%s payloadlength:%d id:%d count:%d source ip:%s \n",
 							pack->GetExtensionData(), pack->GetPayloadLength(), pack->GetExtensionID(), pack->GetTimestamp(), mSession.getSourceIp().c_str());
 
 					if(pack->HasMarker())

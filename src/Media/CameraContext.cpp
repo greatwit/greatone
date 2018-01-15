@@ -73,7 +73,7 @@ namespace android
 			{
 				ALOGE("Error: load so  failed.\n");
 			}
-			dlerror(); // 清空错误信息
+			dlerror(); 			//清空错误信息
 		
 		
 		CameraSetup 					= (CameraSetup_t*)dlsym(mLibHandle, "CameraSetup");

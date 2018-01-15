@@ -570,7 +570,7 @@ bool RTPUDPv6Transmitter::ComesFromThisTransmitter(const RTPAddress *addr)
 		{
 			in6_addr itip = *it;
 			in6_addr addrip = addr2->GetIP();
-			ALOGD("================================================ipv6 getip:%d\n", addr2->GetIP());
+			GLOGD("ipv6 getip:%d\n", addr2->GetIP());
 
 			if (memcmp(&addrip,&itip,sizeof(in6_addr)) == 0)
 				found = true;

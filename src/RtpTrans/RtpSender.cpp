@@ -15,13 +15,14 @@ RtpSender::RtpSender()
 		:mInited(false)
 		,mbConnected(false)
 {
-	ALOGV("RtpSender::RtpSender construct.");
+	GLOGV("function %s,line:%d construct.",__FUNCTION__,__LINE__);
 }
 
 RtpSender::~RtpSender() 
 {
 	// TODO Auto-generated destructor stub
 	mInited = false;
+	GLOGV("function %s,line:%d Destructor.",__FUNCTION__,__LINE__);
 }
 
   
@@ -61,11 +62,11 @@ bool RtpSender::initSession(short localPort)
 	}
 	else
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 
-	ALOGW("TAG 12:function %s,line:%d RtpSender::initSession()",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d RtpSender::initSession()",__FUNCTION__,__LINE__);
 
 
 	mInited = true;
@@ -93,7 +94,7 @@ bool RtpSender::connect(std::string sDestIp, short destPort)
 
 	if(!mInited)
 	{
-		ALOGW("TAG 12:function %s,line:%d do not inited ",__FUNCTION__,__LINE__);
+		GLOGW("function %s,line:%d do not inited ",__FUNCTION__,__LINE__);
 		return mInited;
 	}
 
@@ -103,7 +104,7 @@ bool RtpSender::connect(std::string sDestIp, short destPort)
 	uint32_t uiDestip = inet_addr(sDestIp.c_str());
 	if (uiDestip == INADDR_NONE)
 	{
-		ALOGE("TAG 12:function %s,line:%d Bad IP address specified ip:%s ",__FUNCTION__,__LINE__, sDestIp.c_str());
+		GLOGE("function %s,line:%d Bad IP address specified ip:%s ",__FUNCTION__,__LINE__, sDestIp.c_str());
 		return false;
 	}
 
@@ -115,7 +116,7 @@ bool RtpSender::connect(std::string sDestIp, short destPort)
 	iStatus = mSession.AddDestination(mDestAddr);
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		if(ERR_RTP_HASHTABLE_ELEMENTALREADYEXISTS != iStatus)
 			return false;
 	}
@@ -123,7 +124,7 @@ bool RtpSender::connect(std::string sDestIp, short destPort)
 	mbConnected = true;
 
 
-	ALOGW("TAG 12:function %s,line:%d RtpSender::connect ",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d RtpSender::connect ",__FUNCTION__,__LINE__);
 	return true;
 }
 
@@ -133,9 +134,9 @@ bool RtpSender::disConnect()
 	if(mbConnected)
 	{
 		mSession.DeleteDestination(mDestAddr);
-		ALOGW("TAG 12:function %s,line:%d RtpSender::disConnect 1",__FUNCTION__,__LINE__);
+		GLOGW("function %s,line:%d RtpSender::disConnect 1",__FUNCTION__,__LINE__);
 		mSession.ClearDestinations();
-		ALOGW("TAG 12:function %s,line:%d RtpSender::disConnect 2",__FUNCTION__,__LINE__);
+		GLOGW("function %s,line:%d RtpSender::disConnect 2",__FUNCTION__,__LINE__);
 		mbConnected = false;
 	}
 	return true;
@@ -150,7 +151,7 @@ bool RtpSender::sendBuffer(void*buff, int dataLen,  char*hdrextdata, int numhdre
 
 	if(dataLen>=MAX_PACKET_SIZE)
 	{
-		ALOGE("function: %s, line: %d, data len big than max_packet_size.", __FUNCTION__, __LINE__);
+		GLOGE("function: %s, line: %d, data len big than max_packet_size.", __FUNCTION__, __LINE__);
 		return false;
 	}
 	
@@ -158,7 +159,7 @@ bool RtpSender::sendBuffer(void*buff, int dataLen,  char*hdrextdata, int numhdre
 
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 
@@ -167,7 +168,7 @@ bool RtpSender::sendBuffer(void*buff, int dataLen,  char*hdrextdata, int numhdre
 	iStatus = mSession.Poll();
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 #endif // RTP_SUPPORT_THREAD
@@ -185,7 +186,7 @@ bool RtpSender::sendBuffer(void*buff, int dataLen, int64_t timeStamp)
 	iStatus = mSession.SendPacket((void *)buff, dataLen, 0, false, timeStamp);
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 
@@ -193,7 +194,7 @@ bool RtpSender::sendBuffer(void*buff, int dataLen, int64_t timeStamp)
 	iStatus = mSession.Poll();
 	if(iStatus<0)
 	{
-		ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
+		GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(iStatus).c_str());
 		return false;
 	}
 #endif // RTP_SUPPORT_THREAD
@@ -211,14 +212,13 @@ bool RtpSender::sendBufferEx1(unsigned char* sendBuf,int buflen)
 	char sendbuf[SEND_PACKETSIZE];   //发送的数据缓冲  
 	memset(sendbuf,0,SEND_PACKETSIZE);  
 
-	printf("send packet length %d \n",buflen);  
 
 	if ( buflen <= packetSize )  
 	{   
 		memcpy(sendbuf,pSendTemp,buflen);
 		status = mSession.SendPacket((void *)sendbuf,buflen + 1);  
 		if(status<0)
-			ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+			GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 	}    
 	else if(buflen > packetSize )  
 	{   
@@ -242,7 +242,7 @@ bool RtpSender::sendBufferEx1(unsigned char* sendBuf,int buflen)
 			memcpy(sendbuf, &pSendTemp[t*packetSize], packetSize);  
 			status = mSession.SendPacket((void *)sendbuf,packetSize);   
 			if(status<0)
-				ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+				GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 		}   
 
 		//设置标志位Mark为1  
@@ -252,7 +252,7 @@ bool RtpSender::sendBufferEx1(unsigned char* sendBuf,int buflen)
 		memcpy(sendbuf,&pSendTemp[t*packetSize], iSendLen);  
 		status = mSession.SendPacket((void *)sendbuf, iSendLen);  
 		if(status<0)
-			ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+			GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 	}  
 	return true;
 } 
@@ -280,7 +280,7 @@ bool RtpSender::sendBufferEx(void*buff, int buflen, int64_t timeStamp)
 		memcpy(sendbuf,pSendTemp,buflen); 
 		mSession.SendPacket((void *)sendbuf, buflen, 0, false, timeStamp);
 		if(status<0)
-			ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+			GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 	}    
 	else if(buflen > packetSize )  
 	{  
@@ -312,7 +312,7 @@ bool RtpSender::sendBufferEx(void*buff, int buflen, int64_t timeStamp)
 			memcpy(sendbuf,&pSendTemp[t*packetSize],packetSize);  
 			status = mSession.SendPacketEx((void *)sendbuf,packetSize, t, headerTem.c_str(), headerTem.length());   
 			if(status<0)
-				ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+				GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 		}   
 
 		//设置标志位Mark为1  
@@ -323,7 +323,7 @@ bool RtpSender::sendBufferEx(void*buff, int buflen, int64_t timeStamp)
 		memcpy(sendbuf,&pSendTemp[t*packetSize],iSendLen);  
 		status = mSession.SendPacket((void *)sendbuf,iSendLen, t, headerTem.c_str(), headerTem.length());  
 		if(status<0)
-			ALOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
+			GLOGE("function: %s, line: %d, error: %s", __FUNCTION__, __LINE__, RTPGetErrorString(status).c_str());
 	}
 	return true;
 }

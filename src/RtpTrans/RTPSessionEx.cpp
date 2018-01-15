@@ -56,7 +56,7 @@ void RTPSessionEx::OnNewSource(RTPSourceData *dat)
 	inaddr.s_addr = htonl(ip);
 	mSourceIp = string(inet_ntoa(inaddr));
 
-	ALOGW("%s,line:%d Adding destination address:%s port:%d",__FUNCTION__,__LINE__ , inet_ntoa(inaddr), port);
+	GLOGW("%s,line:%d Adding destination address:%s port:%d",__FUNCTION__,__LINE__ , inet_ntoa(inaddr), port);
 }
 
 void RTPSessionEx::OnBYEPacket(RTPSourceData *dat)
@@ -87,7 +87,7 @@ void RTPSessionEx::OnBYEPacket(RTPSourceData *dat)
 
 	struct in_addr inaddr;
 	inaddr.s_addr = htonl(ip);
-	ALOGW("%s,line:%d Adding destination address:%s port:%d",__FUNCTION__,__LINE__ , inet_ntoa(inaddr), port);
+	GLOGW("%s,line:%d Adding destination address:%s port:%d",__FUNCTION__,__LINE__ , inet_ntoa(inaddr), port);
 }
 
 void RTPSessionEx::OnRemoveSource(RTPSourceData *dat)
@@ -120,5 +120,5 @@ void RTPSessionEx::OnRemoveSource(RTPSourceData *dat)
 
 	struct in_addr inaddr;
 	inaddr.s_addr = htonl(ip);
-	ALOGW("%s,line:%d Adding destination address:%s port:%d",__FUNCTION__,__LINE__ , inet_ntoa(inaddr), port);
+	GLOGW("%s,line:%d Adding destination address:%s port:%d",__FUNCTION__,__LINE__ , inet_ntoa(inaddr), port);
 }

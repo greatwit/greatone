@@ -8,10 +8,6 @@
 #define TAG "FileDeCodec"
 
 
-#define ALOGTEST(...)	__android_log_print(ANDROID_LOG_INFO,	TAG,  __VA_ARGS__)
-#define ALOGE(...)		__android_log_print(ANDROID_LOG_ERROR,	TAG,  __VA_ARGS__)
-
-
 //char *gFilePath1 = "/sdcard/camera.h264";
 
 int charsToInt1(char* src, int offset) 
@@ -72,7 +68,7 @@ bool FileDeCodec::StartVideo(int deivceid)
 
 	
 	run("SenderServer", PRIORITY_URGENT_DISPLAY);
-	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
 
 	mbRunning = true;  
 
@@ -84,7 +80,7 @@ bool FileDeCodec::StopVideo()
 	if(false==mbRunning)
 		return false;
 
-	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	mbRunning = false;
 	requestExit();
@@ -92,7 +88,7 @@ bool FileDeCodec::StopVideo()
 	//mCodec->stopCodec();
 	CodecBaseLib::getInstance()->StopCodec();
 	
-	VIDEOLOGD("TAG 1,function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
 	return true;
 }
@@ -115,7 +111,7 @@ bool FileDeCodec::threadLoop()
 		dataLen = charsToInt1(mcharLength,0);
 		res 	= fread(mData, dataLen, 1, mFile);
 		
-		VIDEOLOGD("startCodec------------3 res:%d dataLen:%d", res, dataLen);
+		GLOGD("startCode res:%d dataLen:%d", res, dataLen);
 		
 		CodecBaseLib::getInstance()->AddBuffer(mData, dataLen);
 		//mCodec->addBuffer(mData, dataLen);

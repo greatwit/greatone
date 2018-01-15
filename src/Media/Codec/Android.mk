@@ -29,6 +29,7 @@ LOCAL_C_INCLUDES += \
     frameworks/base/core/jni \
     frameworks/av/media/libmedia \
 	frameworks/av/media/libstagefright \
+	$(subst $(LOCAL_PATH)/,,$(wildcard $(CODEC_PATH)/../../Common)) \
 	$(LOCAL_PATH) \
 	$(CODEC_PATH) \
     $(call include-path-for, libhardware)/hardware

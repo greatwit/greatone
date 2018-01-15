@@ -198,7 +198,7 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 					jshort destport, jshort localport, jint flags)
 {
 	ALOGE("Enter:StartCodecSender----------->1");
-	
+	bool bResult = false;
 	if(mpCodecSend == NULL)
 	{
 		//读取sdk版本
@@ -223,22 +223,28 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 		if(jsurface!=NULL)
 		{
 			sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
-			mpCodecSend->CreateCodec(thiz, format, surface, crypto, flags, localport, 0);
+			bResult = mpCodecSend->CreateCodec(thiz, format, surface, crypto, flags, localport, 0);
 			ALOGE("Enter:StartCodecSender----------->31");
 		}else
 		{
-			mpCodecSend->CreateCodec(thiz, format, NULL, crypto, flags, localport, 0);
+			bResult = mpCodecSend->CreateCodec(thiz, format, NULL, crypto, flags, localport, 0);
 			ALOGE("Enter:StartCodecSender----------->32");
 		}
 
-		const char *pAddr = env->GetStringUTFChars(destip, NULL);
-		mpCodecSend->ConnectDest(pAddr, destport);
-		env->ReleaseStringUTFChars(destip, pAddr);
-		
-		return true;
+		if(bResult)
+		{
+			const char *pAddr = env->GetStringUTFChars(destip, NULL);
+			mpCodecSend->ConnectDest(pAddr, destport);
+			env->ReleaseStringUTFChars(destip, pAddr);
+		}
+		else
+		{
+			ALOGE("function %s,line:%d StartCodecSender failed.", __FUNCTION__, __LINE__);
+			return false;
+		}
 	}
 
-    return false;
+    return true;
 }
 
 static jboolean StartCameraVideo(JNIEnv *env, jobject thiz, jobject jsurface)

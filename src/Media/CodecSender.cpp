@@ -13,12 +13,12 @@ CodecSender::CodecSender()
 	    :mbRunning(false)
 	    ,mpSender(NULL)
 { 
-	ALOGV("SenderServer::SenderServer() construct.");
+	GLOGV("function %s,line:%d construct.",__FUNCTION__,__LINE__);
 }
 
 CodecSender::~CodecSender()
 {
-	ALOGV("SenderServer, Destructor");
+	GLOGV("function %s,line:%d Destructor.",__FUNCTION__,__LINE__);
 }
 
 bool CodecSender::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags, short sendPort)
@@ -32,23 +32,39 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	mpSender = new RtpSender();
 	if(!mpSender->initSession(sendPort))
 	{
-		ALOGE("function %s,line:%d mpSender->initSession() failed.", __FUNCTION__, __LINE__);
+		GLOGE("function %s,line:%d mpSender->initSession() failed.", __FUNCTION__, __LINE__);
 		return false;
 	}
 
-
-   //读取sdk版本
-   char szSdkVer[32]={0};
-   __system_property_get("ro.build.version.sdk", szSdkVer);
-   ALOGE("sdk:%d",atoi(szSdkVer));
-	
-	CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
-	CodecBaseLib::getInstance()->RegisterBufferCall(this);
+	bool bResult = false;
+    //读取sdk版本
+    char szSdkVer[32]={0};
+    __system_property_get("ro.build.version.sdk", szSdkVer);
+    GLOGW("sdk:%d",atoi(szSdkVer));
 	
 	JNIEnv *env = AndroidRuntime::getJNIEnv();
 	jstring clientPackageName = env->NewStringUTF("com.greatmedia");
-	CameraLib::getInstance()->LoadCameraLib(atoi(szSdkVer));
-	CameraLib::getInstance()->CameraSetup(this, cameraId, clientPackageName);
+	bResult = CameraLib::getInstance()->LoadCameraLib(atoi(szSdkVer));
+	if(bResult)
+	{
+		int camSet = CameraLib::getInstance()->CameraSetup(this, cameraId, clientPackageName);
+		if(camSet>=0)
+		{
+			bResult = CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
+			if(bResult)
+				CodecBaseLib::getInstance()->RegisterBufferCall(this);
+			else
+				GLOGE("function %s,line:%d CodecCreate failed.", __FUNCTION__, __LINE__);
+		}
+		else
+		{
+			GLOGE("function %s,line:%d CameraSetup failed.", __FUNCTION__, __LINE__);
+			return false;
+		}
+	}
+	else
+		GLOGE("function %s,line:%d LoadCameraLib failed.", __FUNCTION__, __LINE__);
+
 	//mCamera = Camera::connect(cameraId);
 	// make sure camera hardware is alive
     //if (mCamera->getStatus() != NO_ERROR) {
@@ -65,7 +81,7 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
 	//mCodec->CreateCodec(format, surface, crypto, flags);
 	//mCodec->registerBufferCall(this);
 	
-	return true;
+	return bResult;
 }
 
 bool CodecSender::DeInit()
@@ -102,14 +118,14 @@ bool CodecSender::StartVideo(const sp<Surface> &cameraSurf)
 	
 	CameraLib::getInstance()->StartPreview(cameraSurf);
 
-	VIDEOLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
 
 	return true; 
 }
 
 bool CodecSender::StopVideo()
 {
-	ALOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	//mCodec->stopCodec();
 	CodecBaseLib::getInstance()->StopCodec();
@@ -117,7 +133,7 @@ bool CodecSender::StopVideo()
 	CameraLib::getInstance()->StopPreview();
 	CameraLib::getInstance()->CameraRelease();
 
-	VIDEOLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
 	return true;
 }
@@ -129,11 +145,11 @@ bool CodecSender::ConnectDest(std::string ip, short port)
 	bRes = mpSender->connect(ip, port);
 	if (bRes == false)
 	{
-		ALOGE("function %s,line:%d connect device failed... ip:%s port:%d", __FUNCTION__, __LINE__, ip.c_str(), port);
+		GLOGE("function %s,line:%d connect device failed... ip:%s port:%d", __FUNCTION__, __LINE__, ip.c_str(), port);
 	}
 	else
 	{
-		ALOGD("function %s,line:%d connect device successfuled... ip:%s port:%d", __FUNCTION__, __LINE__, ip.c_str(), port);
+		GLOGD("function %s,line:%d connect device successfuled... ip:%s port:%d", __FUNCTION__, __LINE__, ip.c_str(), port);
 	}
 
 	return bRes;
@@ -142,13 +158,13 @@ bool CodecSender::ConnectDest(std::string ip, short port)
 //camera frame callback
 void CodecSender::VideoSource(V4L2BUF_t *pBuf)
 {
-	ALOGW("function %s,line:%d len:%d", __FUNCTION__, __LINE__, pBuf->length);
+	GLOGW("function %s,line:%d len:%d", __FUNCTION__, __LINE__, pBuf->length);
 	char* data = (char*)pBuf->addrVirY;
 	
 	int ylen  = pBuf->length*2/3;
 	int uvlen = ylen/2;
 	char tmp  = '/0';
-	for(int i=0;i<uvlen;)
+	for(int i=0;i<uvlen;) //NV21 to NV12
 	{
 		tmp 			= data[ylen+i];
 		data[ylen+i] 	= data[ylen+i+1];
@@ -162,7 +178,7 @@ void CodecSender::VideoSource(V4L2BUF_t *pBuf)
 //codec frame callback
 void CodecSender::onCodecBuffer(struct CodecBuffer& buff)
 {
-	ALOGW("onCodecBuffer--size:%d flags:%d", buff.size, buff.flags);
+	GLOGW("function %s,line:%d onCodecBuffer size:%d flags:%d", __FUNCTION__, __LINE__, buff.size, buff.flags);
 	mpSender->sendBuffer(buff.buf, buff.size, MIME_H264, MIME_H264_LEN, 0);
 }
 

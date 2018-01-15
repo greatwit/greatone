@@ -2,6 +2,7 @@
 
 #include "CameraListen.h"
 
+#include "ComDefine.h"
 #define TAG "JNICameraListen"
 
 using namespace android;
@@ -20,7 +21,7 @@ sp<Camera> JNICameraListen::getCamera()
 
 void JNICameraListen::notify(int32_t msgType, int32_t ext1, int32_t ext2)
 {
-    ALOGV("notify");
+    GLOGD("function %s,line:%d notify",__FUNCTION__,__LINE__);
 }
 
 void JNICameraListen::postData(int32_t msgType, const sp<IMemory>& dataPtr, camera_frame_metadata_t *metadata)
@@ -110,8 +111,8 @@ void JNICameraListen::postDataTimestamp(nsecs_t timestamp, int32_t msgType, cons
 int JNICameraListen::CameraRelease()
 {
     // TODO: Change to ALOGV
-    ALOGV("release camera");
-
+	GLOGD("function %s,line:%d release camera",__FUNCTION__,__LINE__);
+	
 	// clear callbacks
 	if (mCamera != NULL) {
 		mCamera->setPreviewCallbackFlags(CAMERA_FRAME_CALLBACK_FLAG_NOOP);
@@ -130,7 +131,7 @@ jstring JNICameraListen::getParameters()
 {
 	String8 params8 = mCamera->getParameters();
 	if (params8.isEmpty()) {
-        ALOGE("getParameters failed (empty parameters)");
+		GLOGE("function %s,line:%d getParameters failed (empty parameters)",__FUNCTION__,__LINE__);
 		return NULL;
     }
 	JNIEnv *env = AndroidRuntime::getJNIEnv();
@@ -139,17 +140,17 @@ jstring JNICameraListen::getParameters()
 
 void JNICameraListen::stopPreview()
 {
-    ALOGV("stopPreview");
+	GLOGV("function %s,line:%d stopPreview",__FUNCTION__,__LINE__);
 	if (mCamera != NULL)
 		mCamera->stopPreview();
 }
 
 void JNICameraListen::setDisplayOrientation(jint value)
 {
-	ALOGV("setDisplayOrientation");
+	GLOGV("function %s,line:%d setDisplayOrientation",__FUNCTION__,__LINE__);
 	if(mCamera != NULL)
 		if (mCamera->sendCommand(CAMERA_CMD_SET_DISPLAY_ORIENTATION, value, 0) != NO_ERROR) {
-        ALOGE( "set display orientation failed");
+		GLOGE("function %s,line:%d set display orientation failed",__FUNCTION__,__LINE__);
     }
 }
 

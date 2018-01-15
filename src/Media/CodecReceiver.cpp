@@ -11,12 +11,12 @@ CodecReceiver::CodecReceiver()
 	      :mbRunning(false)
 	      ,mpReceive(NULL)
 {
-	ALOGV("SenderServer::SenderServer() construct.");
+	GLOGV("function %s,line:%d construct.",__FUNCTION__,__LINE__);
 }
 
 CodecReceiver::~CodecReceiver()
 {
-	ALOGV("SenderServer, Destructor");
+	GLOGV("function %s,line:%d Destructor.",__FUNCTION__,__LINE__);
 }
 
 bool CodecReceiver::CreateCodec(JNIEnv *env, jobject thiz, const sp<AMessage> &format, const sp<Surface> &surface, const sp<ICrypto> &crypto, int flags)
@@ -33,7 +33,7 @@ bool CodecReceiver::CreateCodec( const sp<AMessage> &format, const sp<Surface> &
 	}
 	else
 	{
-		ALOGE("TAG 2,function %s,line:%d  RtpReceive::Singleton->initSession failed",__FUNCTION__,__LINE__);
+		GLOGE("function %s,line:%d  RtpReceive::Singleton->initSession failed",__FUNCTION__,__LINE__);
 	}
 
 	//mCodec = new CodecBase("video/avc", true, false);
@@ -59,21 +59,21 @@ bool CodecReceiver::StartVideo(int deivceid)
 	
 	mpReceive->startThread();
 	
-	VIDEOLOGD("TAG 2,function %s,line:%d",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d",__FUNCTION__,__LINE__);
 
 	return true;
 }
 
 bool CodecReceiver::StopVideo()
 {
-	ALOGW("TAG 1,function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
+	GLOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	mpReceive->stopThread();
 	
 	//mCodec->stopCodec();
 	CodecBaseLib::getInstance()->StopCodec();
 	
-	VIDEOLOGD("TAG 1,function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
+	GLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 
 	return true;
 }

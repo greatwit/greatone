@@ -21,7 +21,7 @@ bool CommonThread::StartThread()
 
 	if (0 != iResult)
 	{
-		ALOGV("create thread1 failed:----!%s\n", strerror(iResult));
+		GLOGV("create thread1 failed:----!%s\n", strerror(iResult));
 		return false;
 	}
 	return true;
@@ -50,12 +50,12 @@ bool CommonThread::run(char*tag, int level)
 	iResult = pthread_attr_setschedpolicy (&attr, SCHED_RR );//SCHED_RR SCHED_FIFO SCHED_OTHER
 	if (0 != iResult)
 	{
-		ALOGE("pthread_attr_setschedpolicy failed:----!%s\n", strerror(iResult));
+		GLOGE("pthread_attr_setschedpolicy failed:----!%s\n", strerror(iResult));
 	}
 	iResult = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	if (0 != iResult)
 	{
-		ALOGE("pthread_attr_setdetachstate failed:----!%s\n", strerror(iResult));
+		GLOGE("pthread_attr_setdetachstate failed:----!%s\n", strerror(iResult));
 	}
 	//pthread_attr_setschedparam ( &attr, &sched );
 
@@ -64,7 +64,7 @@ bool CommonThread::run(char*tag, int level)
 
 	if (0 != iResult)
 	{
-		ALOGE("create thread1 failed:----!%s\n", strerror(iResult));
+		GLOGE("create thread1 failed:----!%s\n", strerror(iResult));
 		return false;
 	}
 	
