@@ -5,7 +5,7 @@
 #include <utils/Log.h>
 
 
-
+#include "ComDefine.h"
 #define TAG "CameraLib"
 
 namespace android 
@@ -25,7 +25,6 @@ namespace android
 			dlclose(mLibHandle); // 关闭so句柄
 			mLibHandle = NULL;
 		}
-		
 	}
 
 	CameraLib*CameraLib::getInstance()
@@ -55,7 +54,7 @@ namespace android
 					break;
 					
 				case 23: 		//6.0
-				mLibHandle = dlopen("libCamera6.so", RTLD_NOW); // 载入.so文件 RTLD_LAZY
+				mLibHandle = dlopen("libCamera6.so", RTLD_LAZY); // 载入.so文件 RTLD_LAZY
 					break;
 					
 				case 24:		//7.0
@@ -69,12 +68,13 @@ namespace android
 					break;
 			}
 			
-			if (!mLibHandle) 
-			{
-				ALOGE("Error: load so  failed.\n");
-			}
-			dlerror(); 			//清空错误信息
-		
+			const char *err = dlerror(); 			//清空错误信息
+			
+			if (mLibHandle == NULL)
+				GLOGE("function %s,line:%d load camera failed stderr:%s", __FUNCTION__, __LINE__, err);
+			else
+				GLOGE("function %s,line:%d dlopen camera succ", __FUNCTION__, __LINE__);
+			
 		
 		CameraSetup 					= (CameraSetup_t*)dlsym(mLibHandle, "CameraSetup");
 		CameraRelease 					= (CameraRelease_t*)dlsym(mLibHandle, "CameraRelease");
@@ -85,14 +85,24 @@ namespace android
 		SetDisplayOrientation			= (SetDisplayOrientation_t*)dlsym(mLibHandle, "SetDisplayOrientation");
 		
 		
-		const char *err = dlerror();
+		err = dlerror();
 		if (NULL != err) 
 		{
-			ALOGE("dlsym stderr:%s\n", err);
+			GLOGE("dlsym stderr:%s\n", err);
 			return false;
 		}
 			
-		return mLibHandle!=NULL;
+		return true;
+	}
+	
+	bool CameraLib::ReleaseLib()
+	{
+		if(mLibHandle)
+		{
+			dlclose(mLibHandle); // 关闭so句柄
+			mLibHandle = NULL;
+		}
+		return mLibHandle==NULL;
 	}
 
 }

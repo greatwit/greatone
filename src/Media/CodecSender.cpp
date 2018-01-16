@@ -42,15 +42,17 @@ bool CodecSender::CreateCodec(jobject thiz, const sp<AMessage> &format, const sp
     __system_property_get("ro.build.version.sdk", szSdkVer);
     GLOGW("sdk:%d",atoi(szSdkVer));
 	
+	
 	JNIEnv *env = AndroidRuntime::getJNIEnv();
 	jstring clientPackageName = env->NewStringUTF("com.greatmedia");
 	bResult = CameraLib::getInstance()->LoadCameraLib(atoi(szSdkVer));
 	if(bResult)
 	{
+		
 		int camSet = CameraLib::getInstance()->CameraSetup(this, cameraId, clientPackageName);
 		if(camSet>=0)
 		{
-			bResult = CodecBaseLib::getInstance()->CodecCreate(format, NULL, crypto, flags, true);
+			bResult = CodecBaseLib::getInstance()->CodecCreate(format, surface, crypto, flags, true);
 			if(bResult)
 				CodecBaseLib::getInstance()->RegisterBufferCall(this);
 			else
@@ -88,7 +90,8 @@ bool CodecSender::DeInit()
 {	
 	//StopVideo();
 	//mCodec = NULL;
-	
+	CameraLib::getInstance()->CameraRelease();
+	CameraLib::getInstance()->ReleaseLib();
 	mpSender->deinitSession();
 	delete mpSender;
 	mpSender = NULL;
@@ -128,10 +131,9 @@ bool CodecSender::StopVideo()
 	GLOGW("function %s,line:%d StopVideo 0",__FUNCTION__,__LINE__);
 
 	//mCodec->stopCodec();
-	CodecBaseLib::getInstance()->StopCodec();
-	
 	CameraLib::getInstance()->StopPreview();
-	CameraLib::getInstance()->CameraRelease();
+	
+	CodecBaseLib::getInstance()->StopCodec();
 
 	GLOGD("function %s,line:%d StopVideo 2",__FUNCTION__,__LINE__);
 

@@ -31,6 +31,7 @@ class CameraLib
 		~CameraLib();
 		static CameraLib*getInstance();
 		bool LoadCameraLib(int version);
+		bool ReleaseLib();
 		
 		CameraSetup_t* 				CameraSetup;
 		CameraRelease_t*			CameraRelease;

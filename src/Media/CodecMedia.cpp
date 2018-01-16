@@ -1,12 +1,9 @@
 
 
-#include <utils/Log.h>
-
 
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/android_view_Surface.h"
 #include "jni.h"
-#include "JNIHelp.h"
 
 #include "cutils/properties.h"
 #include <gui/Surface.h>
@@ -57,7 +54,7 @@ static jboolean StartVideoSend(JNIEnv *env, jobject thiz,
 						jobject bufferInfo
 						)
 {
-	ALOGE("Enter:StartVideoSend----------->1");
+	GLOGW("Enter:StartVideoSend----------->1");
 
 	return true;
 }
@@ -65,7 +62,7 @@ static jboolean StartVideoSend(JNIEnv *env, jobject thiz,
 static jboolean StopVideoSend(JNIEnv *env, jobject)
 {
 	int res = CodecBaseLib::getInstance()->testAdd(1,1);
-	ALOGE("Enter:StartVideoSend----------->res:%d", res);
+	GLOGW("Enter:StartVideoSend----------->res:%d", res);
 	return true;
 }
 
@@ -81,7 +78,7 @@ static jboolean StartFileDecoder(JNIEnv *env, jobject,
 											jint flags,
 											jstring filepath)
 {
-	ALOGE("Enter:StartFileDecoder----------->1");
+	GLOGW("Enter:StartFileDecoder----------->1");
 	
 	sp<AMessage> format;
 	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
@@ -99,16 +96,16 @@ static jboolean StartFileDecoder(JNIEnv *env, jobject,
 		const char *file = env->GetStringUTFChars(filepath, NULL);
 	
 		mpFileDecoder = new FileDeCodec();
-		ALOGE("Enter:StartFileDecoder----------->2");
+		ALOGW("Enter:StartFileDecoder----------->2");
 		mpFileDecoder->CreateCodec(format, surface, crypto, flags, (char *)file);
-		ALOGE("Enter:StartFileDecoder----------->3");
+		ALOGW("Enter:StartFileDecoder----------->3");
 		env->ReleaseStringUTFChars(filepath, file);
 
-		ALOGE("Enter:StartFileDecoder----------->4");
+		ALOGW("Enter:StartFileDecoder----------->4");
 		mpFileDecoder->StartVideo(0);
 	}
 	
-	ALOGE("Enter:StartFileDecoder----------->5");
+	GLOGW("Enter:StartFileDecoder----------->5");
 	
 	return true;
 }
@@ -138,7 +135,7 @@ static jboolean StartFileEncoder(JNIEnv *env, jobject,
 	//读取sdk版本
 	char szSdkVer[32]={0};
 	__system_property_get("ro.build.version.sdk", szSdkVer);
-	ALOGE("sdk:%d",atoi(szSdkVer));
+	GLOGI("sdk:%d",atoi(szSdkVer));
 	CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
 	
 	sp<AMessage> format;
@@ -152,24 +149,24 @@ static jboolean StartFileEncoder(JNIEnv *env, jobject,
 	const char *file = env->GetStringUTFChars(filepath, NULL);
 	
 	mpFileEncoder = new FileEnCodec();
-	ALOGE("Enter:StartFileEncoder----------->2");
+	GLOGW("Enter:StartFileEncoder----------->2");
 
 	if(jsurface!=NULL)
 	{
 		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 		mpFileEncoder->CreateCodec(format, surface, crypto, flags, (char*)file);
-		ALOGE("Enter:StartFileEncoder----------->31");
+		GLOGE("Enter:StartFileEncoder----------->31");
 	}else
 	{
 		mpFileEncoder->CreateCodec(format, NULL, crypto, flags, (char*)file);
-		ALOGE("Enter:StartFileEncoder----------->32");
+		GLOGE("Enter:StartFileEncoder----------->32");
 	}
 
 	env->ReleaseStringUTFChars(filepath, file);
 
-	ALOGE("Enter:StartFileEncoder----------->4");
+	GLOGW("Enter:StartFileEncoder----------->4");
 	mpFileEncoder->StartVideo(0);
-	ALOGE("Enter:StartFileEncoder----------->5");
+	GLOGW("Enter:StartFileEncoder----------->5");
 	
 	return true;
 }
@@ -197,14 +194,14 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 					jobject jsurface, jobject jcrypto, jstring destip, 
 					jshort destport, jshort localport, jint flags)
 {
-	ALOGE("Enter:StartCodecSender----------->1");
+	GLOGW("Enter:StartCodecSender----------->1");
 	bool bResult = false;
 	if(mpCodecSend == NULL)
 	{
 		//读取sdk版本
 		char szSdkVer[32]={0};
 		__system_property_get("ro.build.version.sdk", szSdkVer);
-		ALOGE("sdk:%d",atoi(szSdkVer));
+		GLOGI("sdk:%d",atoi(szSdkVer));
 		CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
 		
 		sp<AMessage> format;
@@ -218,17 +215,17 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 		}
 		
 		mpCodecSend = new CodecSender();
-		ALOGE("Enter:StartCodecSender----------->2");
+		GLOGD("Enter:StartCodecSender----------->2");
 
 		if(jsurface!=NULL)
 		{
 			sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 			bResult = mpCodecSend->CreateCodec(thiz, format, surface, crypto, flags, localport, 0);
-			ALOGE("Enter:StartCodecSender----------->31");
+			GLOGD("Enter:StartCodecSender----------->31");
 		}else
 		{
 			bResult = mpCodecSend->CreateCodec(thiz, format, NULL, crypto, flags, localport, 0);
-			ALOGE("Enter:StartCodecSender----------->32");
+			GLOGD("Enter:StartCodecSender----------->32");
 		}
 
 		if(bResult)
@@ -239,7 +236,7 @@ static jboolean StartCodecSender(JNIEnv *env, jobject thiz,
 		}
 		else
 		{
-			ALOGE("function %s,line:%d StartCodecSender failed.", __FUNCTION__, __LINE__);
+			GLOGE("function %s,line:%d StartCodecSender failed.", __FUNCTION__, __LINE__);
 			return false;
 		}
 	}
@@ -253,7 +250,7 @@ static jboolean StartCameraVideo(JNIEnv *env, jobject thiz, jobject jsurface)
 	{
 		sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 		mpCodecSend->StartVideo(surface);
-		ALOGE("StartCameraVideo");
+		GLOGE("StartCameraVideo");
 		return true;
 	}
 	return false;
@@ -263,13 +260,13 @@ static jboolean StopCameraVideo(JNIEnv *env, jobject)
 {
 	if(mpCodecSend)
 		mpCodecSend->StopVideo();
-	ALOGE("StopCameraVideo");
+	GLOGW("StopCameraVideo");
 	return true;
 }
 
 static jstring GetCameraParameter(JNIEnv *env, jobject)
 {
-    ALOGE("GetCameraParameter");
+    GLOGW("GetCameraParameter");
 	if(mpCodecSend)
 		return mpCodecSend->GetCameraParameter();
 	else
@@ -326,17 +323,17 @@ static jboolean StartCodecRecver(JNIEnv *env, jobject,
 					jobject jsurface, jobject jcrypto, jint flags,
 					jshort recvport)
 {
-	ALOGE("Enter:StartCodecRecver----------->1");
+	GLOGW("Enter:StartCodecRecver----------->1");
 	
 	//读取sdk版本
 	char szSdkVer[32]={0};
 	__system_property_get("ro.build.version.sdk", szSdkVer);
-	ALOGE("sdk:%d",atoi(szSdkVer));
+	GLOGI("sdk:%d",atoi(szSdkVer));
 	CodecBaseLib::getInstance()->LoadBaseLib(atoi(szSdkVer));
 	
 	sp<AMessage> format;
 	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
-	ALOGE("Enter:StartCodecRecver----------->2");
+	GLOGD("Enter:StartCodecRecver----------->2");
 	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 	
 	sp<ICrypto> crypto;
@@ -347,12 +344,10 @@ static jboolean StartCodecRecver(JNIEnv *env, jobject,
 	mpCodecRecv = new CodecReceiver();
 	
 	mpCodecRecv->CreateCodec(format, surface, crypto, flags, recvport);
-	ALOGE("Enter:StartCodecRecver----------->3");
 
-
-	ALOGE("Enter:StartCodecRecver----------->4");
+	GLOGD("Enter:StartCodecRecver----------->4");
 	mpCodecRecv->StartVideo(0);
-	ALOGE("Enter:StartCodecRecver----------->5");
+	GLOGD("Enter:StartCodecRecver----------->5");
 
 	return true;
 }
@@ -426,23 +421,23 @@ int jniRegisterNativeMethods1(JNIEnv* env,
 {
 	jclass clazz;
 
-	ALOGTEST("Registering %s natives\n", className);
+	GLOGW("Registering %s natives\n", className);
 	clazz = env->FindClass(className);
 
-	ALOGTEST("Registering %s natives 1\n", className);
+	GLOGW("Registering %s natives 1\n", className);
 	if (clazz == NULL) 
 	{
-		ALOGE("Native registration unable to find class '%s'\n", className);
+		GLOGE("Native registration unable to find class '%s'\n", className);
 		return -1;
 	}
 
-	ALOGTEST("Registering %s natives 2\n", className);
+	GLOGW("Registering %s natives 2\n", className);
 	if (env->RegisterNatives(clazz, methods, numMethods) < 0) 
 	{
-		ALOGE("RegisterNatives failed for '%s'\n", className);
+		GLOGE("RegisterNatives failed for '%s'\n", className);
 		return -1;
 	}
-	ALOGTEST("Registering %s natives 3\n", className);
+	GLOGW("Registering %s natives 3\n", className);
 
 	return 0;
 }
@@ -457,21 +452,21 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	JNIEnv* env = NULL;
 	jint result = JNI_ERR;
 
-	ALOGTEST("loading . . .1");
+	GLOGW("loading . . .1");
 	
 	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) 
 	{
-		ALOGE("GetEnv failed!");
+		GLOGE("GetEnv failed!");
 		return result;           
 	}
 	
 	if( registerNatives(env) != JNI_OK) 
 	{
-		ALOGE("can't load ffmpeg");
+		GLOGE("can't load ffmpeg");
 	}
 	
 	
-	ALOGTEST( "loading . . .2");
+	GLOGW( "loading . . .2");
 	
 	result = JNI_VERSION_1_4;
 	char prop[PROPERTY_VALUE_MAX] = "000";
