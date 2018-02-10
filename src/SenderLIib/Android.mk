@@ -17,19 +17,13 @@ LOCAL_SRC_FILES:= \
 LOCAL_SHARED_LIBRARIES := \
 						libandroid_runtime \
 						libnativehelper \
-						liblog \
-						libdl
+						liblog
 
 
 LOCAL_C_INCLUDES += \
-    frameworks/base/core/jni \
 	$(LOCAL_PATH)/../Common \
 	$(LOCAL_PATH)/../RtpTrans	\
-	$(LOCAL_PATH)/../RtpTrans/rtplib/jrtplib	\
-    $(call include-path-for, libhardware)/hardware \
-    $(call include-path-for, corecg graphics)
-
-	LOCAL_C_INCLUDES += external/stlport/stlport bionic
+	$(LOCAL_PATH)/../RtpTrans/rtplib/jrtplib
 
 LOCAL_CFLAGS +=
 
