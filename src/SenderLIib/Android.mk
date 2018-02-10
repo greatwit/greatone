@@ -25,7 +25,9 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../RtpTrans	\
 	$(LOCAL_PATH)/../RtpTrans/rtplib/jrtplib
 
-LOCAL_CFLAGS +=
+#LOCAL_CFLAGS +=
+
+LOCAL_LDFLAGS := -Wl,--hash-style=sysv
 
 #need for android4 compile, no for android6
 #LOCAL_SHARED_LIBRARIES += libstlport 

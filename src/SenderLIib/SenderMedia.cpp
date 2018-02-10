@@ -118,7 +118,7 @@ int jniRegisterNativeMethods2(JNIEnv* env,
 }
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) 
-{
+{ 
 	JNIEnv* env = NULL;
 	jint result = JNI_ERR;
 
