@@ -49,12 +49,12 @@ status_t CodecBase::startCodec()
 	jobjectArray inputArray, outputArray;
 	
 	err = mCodec->getBuffers(mpEnv, true, &inputArray); 	//input true, output false
-	GLOGD("function %s,line:%d 3 err:%d",__FUNCTION__,__LINE__, err);
+	GLOGI("function %s,line:%d 3 err:%d",__FUNCTION__,__LINE__, err);
 	
 	if(OK == err)
 	{
 		miInputArrayLen = mpEnv->GetArrayLength(inputArray);
-		GLOGD("function %s,line:%d r miInputArrayLen:%d",__FUNCTION__,__LINE__, miInputArrayLen);
+		GLOGI("function %s,line:%d r miInputArrayLen:%d",__FUNCTION__,__LINE__, miInputArrayLen);
 		mpInputBufferPoint = new int[miInputArrayLen];
 		for(int i=0; i<miInputArrayLen; i++)
 		{
@@ -62,18 +62,18 @@ status_t CodecBase::startCodec()
 			if(buffer)
 			{
 				mpInputBufferPoint[i] 	= (int)mpEnv->GetDirectBufferAddress(buffer);
-				GLOGD("function %s,line:%d r BufferAddress:%d",__FUNCTION__,__LINE__, mpInputBufferPoint[i]);
+				GLOGI("function %s,line:%d r BufferAddress:%d",__FUNCTION__,__LINE__, mpInputBufferPoint[i]);
 			}
 		}
 	}
 
 	err = mCodec->getBuffers(mpEnv, false, &outputArray); 	//input true, output false
-	GLOGD("function %s,line:%d 5 err:%d",__FUNCTION__,__LINE__, err);
+	GLOGI("function %s,line:%d 5 err:%d",__FUNCTION__,__LINE__, err);
 	
 	if(OK == err)
 	{
 		miOutputArrayLen = mpEnv->GetArrayLength(outputArray);
-		GLOGD("function %s,line:%d 6 miOutputArrayLen:%d",__FUNCTION__,__LINE__, miOutputArrayLen);
+		GLOGI("function %s,line:%d 6 miOutputArrayLen:%d",__FUNCTION__,__LINE__, miOutputArrayLen);
 		mpOutputBufferPoint = new int[miOutputArrayLen];
 
 		for(int i=0; i<miOutputArrayLen; i++)
@@ -82,7 +82,7 @@ status_t CodecBase::startCodec()
 			if(buffer)
 			{
 				mpOutputBufferPoint[i] 	= (int)mpEnv->GetDirectBufferAddress(buffer);
-				GLOGD("function %s,line:%d BufferAddress:%d",__FUNCTION__,__LINE__, mpOutputBufferPoint[i]);
+				GLOGI("function %s,line:%d BufferAddress:%d",__FUNCTION__,__LINE__, mpOutputBufferPoint[i]);
 			}
 		}
 
@@ -122,16 +122,16 @@ status_t CodecBase::addBuffer(char*data, int len)
 	AString errorDetailMsg;
 	
 	err = mCodec->dequeueInputBuffer(&inputBufferIndex, -1);
-	GLOGD("function %s,line:%d addBuffer 1 err:%d inputBufferIndex:%d",__FUNCTION__,__LINE__, err, inputBufferIndex);
+	GLOGI("function %s,line:%d addBuffer 1 err:%d inputBufferIndex:%d",__FUNCTION__,__LINE__, err, inputBufferIndex);
 	if(err==0)
 	{
 		char* inputChar = (char*)mpInputBufferPoint[inputBufferIndex];
 		//ALOGTEST("addBuffer 2 inputChar addr:%d", (int)inputChar);
 
 		memcpy(inputChar, data, len);
-		GLOGD("function %s,line:%d addBuffer 22 len:%d",__FUNCTION__,__LINE__, len);
+		GLOGI("function %s,line:%d addBuffer 22 len:%d",__FUNCTION__,__LINE__, len);
 		err = mCodec->queueInputBuffer(inputBufferIndex, 0, len, 1000000, 0, &errorDetailMsg);
-		GLOGD("function %s,line:%d addBuffer 3 err:%d",__FUNCTION__,__LINE__, err);
+		GLOGI("function %s,line:%d addBuffer 3 err:%d",__FUNCTION__,__LINE__, err);
 		mCount++;
 	}
 
@@ -152,7 +152,7 @@ status_t CodecBase::getCodecBuffer()
 		return -1;
 
 	err = mCodec->dequeueOutputBuffer(mpEnv, &outputBufferIndex, offset, size, timeUs, flags, 12000);
-	GLOGD("function %s,line:%d dequeue 7 size:%d uflags:%d err:%d outputBufferIndex:%d",__FUNCTION__,__LINE__, size, flags, err, outputBufferIndex);
+	GLOGI("function %s,line:%d dequeue 7 size:%d uflags:%d err:%d outputBufferIndex:%d",__FUNCTION__,__LINE__, size, flags, err, outputBufferIndex);
 	while (err ==0 && outputBufferIndex >= 0) 
 	{
 		if(mpBufferCall)
@@ -175,7 +175,7 @@ status_t CodecBase::getCodecBuffer()
 		GLOGE("function %s,line:%d outputBufferIndex:%d ",__FUNCTION__,__LINE__,outputBufferIndex);
 	}
 	
-	GLOGD("function %s,line:%d getCodecBuffer 8",__FUNCTION__,__LINE__);
+	GLOGI("function %s,line:%d getCodecBuffer 8",__FUNCTION__,__LINE__);
 
 	return err;
 }
