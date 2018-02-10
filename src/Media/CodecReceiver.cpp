@@ -85,7 +85,7 @@ void CodecReceiver::ReceiveSource(int64_t timeStamp, char*mimeType, void* buffer
 		CodecBaseLib::getInstance()->AddBuffer((char*)buffer, dataLen);
 		//mCodec->addBuffer((char*)buffer, dataLen);
 	}
-
+	GLOGW("function %s,line:%d ReceiveSource len:%d",__FUNCTION__, __LINE__, dataLen);
 	return;
 }
 

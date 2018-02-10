@@ -380,7 +380,7 @@ static jboolean StartCodecRecver(JNIEnv *env, jobject,
 	
 	sp<AMessage> format;
 	status_t err = CodecBaseLib::getInstance()->ConvertKeyValueToMessage(env, keys, values, &format);//ConvertKeyValueArraysToMessage(env, keys, values, &format);
-	GLOGD("Enter:StartCodecRecver----------->2");
+	GLOGW("Enter:StartCodecRecver----------->2");
 	sp<Surface> surface(android_view_Surface_getSurface(env, jsurface));
 	
 	sp<ICrypto> crypto;
@@ -392,9 +392,9 @@ static jboolean StartCodecRecver(JNIEnv *env, jobject,
 	
 	mpCodecRecv->CreateCodec(format, surface, crypto, flags, recvport);
 
-	GLOGD("Enter:StartCodecRecver----------->4");
+	GLOGW("Enter:StartCodecRecver----------->4");
 	mpCodecRecv->StartVideo(0);
-	GLOGD("Enter:StartCodecRecver----------->5");
+	GLOGW("Enter:StartCodecRecver----------->5");
 
 	return true;
 }
