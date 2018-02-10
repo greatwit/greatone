@@ -35,11 +35,16 @@ static jboolean SenderCreate(JNIEnv *env, jobject, int sendPort)
 	return true;
 }
 
-static jboolean SenderConnect(JNIEnv *env, jobject, std::string ip, int port)
+static jboolean SenderConnect(JNIEnv *env, jobject, jstring destip, int destport)
 {
 	bool bRes = false;
 	if(mpSender)
-		bRes = mpSender->connect(ip, port);
+	{
+		const char *pAddr = env->GetStringUTFChars(destip, NULL);
+		mpSender->connect(pAddr, destport);
+		env->ReleaseStringUTFChars(destip, pAddr);
+	}
+
 	return bRes;
 }
 
