@@ -12,6 +12,7 @@ plib=../../../../out/target/product/generic/obj/lib
 cp $plib/libCodecBase.so src/bin/libCodecBase5.so
 cp $plib/libCamera.so src/bin/libCamera5.so
 cp $plib/libgreat_media.so src/bin
+cp $plib/libgreat_sender.so src/bin
 echo -e 'copy libs done...........................\n'
 
 
