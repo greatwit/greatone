@@ -318,7 +318,7 @@ static jboolean StopCodecSender(JNIEnv *env, jobject)
 
 
 
-static jboolean SenderCreate(int sendPort)
+static jboolean SenderCreate(JNIEnv *env, jobject, int sendPort)
 {
 	if(mpSender==NULL)
 		mpSender = new RtpSender();
@@ -330,7 +330,7 @@ static jboolean SenderCreate(int sendPort)
 	return true;
 }
 
-static jboolean SenderConnect(std::string ip, int port)
+static jboolean SenderConnect(JNIEnv *env, jobject, std::string ip, int port)
 {
 	bool bRes = false;
 	if(mpSender)
@@ -351,7 +351,7 @@ static jboolean SenderByteArray(JNIEnv *env, jobject, jbyteArray byteData, jint 
 	return false;
 }
 
-static jboolean SenderDestroy()
+static jboolean SenderDestroy(JNIEnv *env, jobject)
 {
 	if(mpSender)
 	{
