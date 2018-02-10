@@ -44,7 +44,7 @@ LOCAL_C_INCLUDES += \
 LOCAL_CFLAGS +=
 
 #need for android4 compile, no for android6
-LOCAL_SHARED_LIBRARIES += libstlport 
+#LOCAL_SHARED_LIBRARIES += libstlport 
 
 
 LOCAL_MODULE:= libgreat_media
