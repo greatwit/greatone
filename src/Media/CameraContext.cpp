@@ -42,10 +42,11 @@ namespace android
 			switch(version)
 			{
 				case 17: 		//17 4.2, 4.2.2
+				mLibHandle = dlopen("libCamera4.so", RTLD_NOW); // 载入.so文件 RTLD_LAZY
+					break;
 				case 18: 		//18 4.3
 				case 19:		//19 4.4
 				case 20:		//20 4.4W
-				mLibHandle = dlopen("libCamera4.so", RTLD_NOW); // 载入.so文件 RTLD_LAZY
 					break;
 					
 				case 21: 		//21 5.0
