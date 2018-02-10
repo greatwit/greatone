@@ -453,9 +453,9 @@ static JNINativeMethod gMethods[] =
 	{ "CodecSenderData", "([BI)Z", (void *)CodecSenderData },
 
 	{ "SenderCreate", "(I)Z", (void *)SenderCreate },
-	{ "SenderConnect", "(Ljava/lang/String;I)Z", (void *)SenderConnect },
-	{ "SenderByteArray", "([BI)Z", (void *)SenderByteArray },
-	{ "SenderDestroy", "()Z", (void *)SenderDestroy },
+	{ "SetCameraParameter", "(Ljava/lang/String;)Z", (void *)SetCameraParameter },
+	{ "CodecSenderData", "([BI)Z", (void *)CodecSenderData },
+	{ "StopCodecSender", "()Z", (void *)StopCodecSender },
 	
 	//
 	{ "StartCodecRecver",
